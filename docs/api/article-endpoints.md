@@ -42,6 +42,8 @@ Create a new article draft.
     - `tags` (Array<String>)
     - `access` (String): `free`, `paid_single`, etc.
     - `price` (Number)
+    - `backgroundImage` (String, Optional)
+    - `imagesAttached` (Array<String>, Optional)
 - **Success Response**: `201 Created` with Article object.
 
 ### List Articles
@@ -83,6 +85,22 @@ Publish a draft article to the public documentation system.
 - **Auth**: Required (Author only)
 - **Success Response**: `200 OK` with published Article.
 
+### Delete Article
+Delete an existing article and its associated storage assets (background images and attached images). Only the author can delete.
+
+- **URL**: `/:id`
+- **Method**: `DELETE`
+- **Auth**: Required (Author only)
+- **Success Response**: `200 OK` with a success message.
+
+### Delete All Articles
+Delete all articles and their associated storage assets for the currently authenticated user.
+
+- **URL**: `/`
+- **Method**: `DELETE`
+- **Auth**: Required
+- **Success Response**: `200 OK` with a success message indicating the number of deleted articles.
+
 ## Engagement
 
 ### Add Review
@@ -95,3 +113,42 @@ Add a rating and comment to an article.
     - `rating` (Number, 1-5, Required)
     - `comment` (String, Optional)
 - **Success Response**: `201 Created` with Review object.
+
+## Templates
+
+### Generate Template (AI)
+Generate a reusable article template using AI. **(Async Job)**
+
+- **URL**: `/templates/generate`
+- **Method**: `POST`
+- **Auth**: Required
+- **Body Parameters**:
+    - `description` (String, Required): Description of the type of articles this template should cover.
+    - `category` (String, Optional): One of: `tutorial`, `case-study`, `blog-post`, `news-update`, `technical-guide`, `research-blog`. (Default: `blog-post`)
+- **Success Response**: `202 Accepted`
+    ```json
+    {
+      "success": true,
+      "data": {
+        "jobId": "...",
+        "status": "queued",
+        "message": "Request accepted for background processing"
+      }
+    }
+    ```
+
+### List Templates
+Get a list of all available article templates.
+
+- **URL**: `/templates`
+- **Method**: `GET`
+- **Auth**: Optional
+- **Success Response**: `200 OK` with Array of Template objects.
+
+### Get Template by Slug
+Retrieve a single template by its slug.
+
+- **URL**: `/templates/:slug`
+- **Method**: `GET`
+- **Auth**: Optional
+- **Success Response**: `200 OK` with Template object.

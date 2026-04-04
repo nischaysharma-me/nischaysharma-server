@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#121212',
+                            800: '#1e1e1e',
+                            700: '#2d2d2d',
+                            600: '#3d3d3d',
+                        },
+                        brand: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                        }
+                    },
+                    typography: (theme) => ({
+                        DEFAULT: {
+                            css: {
+                                color: theme('colors.gray.300'),
+                                h1: { color: theme('colors.white') },
+                                h2: { color: theme('colors.gray.100') },
+                                h3: { color: theme('colors.gray.200') },
+                                h4: { color: theme('colors.gray.300') },
+                                strong: { color: theme('colors.white') },
+                                code: { color: theme('colors.brand.500') },
+                                a: { color: theme('colors.brand.500'), '&:hover': { color: theme('colors.brand.600') } },
+                                pre: { backgroundColor: theme('colors.dark.900') },
+                            },
+                        },
+                    }),
+                }
+            },
+            plugins: [
+                // Minimal typography plugin simulation for markdown styles
+                function({ addComponents, theme }) {
+                    addComponents({
+                        '.markdown-body h1': { fontSize: '2.25rem', fontWeight: '700', marginBottom: '1.5rem', borderBottom: `1px solid ${theme('colors.dark.600')}`, paddingBottom: '0.5rem', color: theme('colors.white') },
+                        '.markdown-body h2': { fontSize: '1.875rem', fontWeight: '600', marginTop: '2rem', marginBottom: '1rem', color: theme('colors.gray.100') },
+                        '.markdown-body h3': { fontSize: '1.5rem', fontWeight: '600', marginTop: '1.5rem', marginBottom: '0.75rem', color: theme('colors.gray.200') },
+                        '.markdown-body p': { marginBottom: '1rem', lineHeight: '1.75', color: theme('colors.gray.300') },
+                        '.markdown-body ul': { listStyleType: 'disc', paddingLeft: '1.5rem', marginBottom: '1rem', color: theme('colors.gray.300') },
+                        '.markdown-body ol': { listStyleType: 'decimal', paddingLeft: '1.5rem', marginBottom: '1rem', color: theme('colors.gray.300') },
+                        '.markdown-body li': { marginBottom: '0.5rem' },
+                        '.markdown-body pre': { backgroundColor: theme('colors.dark.900'), padding: '1rem', borderRadius: '0.5rem', overflowX: 'auto', marginBottom: '1.5rem', border: `1px solid ${theme('colors.dark.700')}` },
+                        '.markdown-body code': { fontFamily: theme('fontFamily.mono'), backgroundColor: theme('colors.dark.700'), padding: '0.2rem 0.4rem', borderRadius: '0.25rem', fontSize: '0.875em', color: theme('colors.brand.500') },
+                        '.markdown-body pre code': { backgroundColor: 'transparent', padding: '0', color: theme('colors.gray.200') },
+                        '.markdown-body blockquote': { borderLeft: `4px solid ${theme('colors.brand.500')}`, paddingLeft: '1rem', fontStyle: 'italic', color: theme('colors.gray.400'), margin: '1.5rem 0' },
+                        '.markdown-body table': { width: '100%', borderCollapse: 'collapse', marginBottom: '1.5rem' },
+                        '.markdown-body th': { backgroundColor: theme('colors.dark.700'), padding: '0.75rem', textAlign: 'left', border: `1px solid ${theme('colors.dark.600')}`, color: theme('colors.white') },
+                        '.markdown-body td': { padding: '0.75rem', border: `1px solid ${theme('colors.dark.600')}`, color: theme('colors.gray.300') },
+                        '.markdown-body a': { color: theme('colors.brand.500'), textDecoration: 'none', transition: 'color 0.2s', '&:hover': { color: theme('colors.brand.600') } },
+                        '.markdown-body hr': { borderColor: theme('colors.dark.600'), margin: '2rem 0' },
+                    })
+                }
+            ]
+        }
+    </script>
+    <style type="text/tailwindcss">
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            @apply bg-slate-800 rounded-full;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            @apply bg-brand-500;
+        }
+        
+        /* Navigation Styles */
+        .nav-section-title {
+            @apply text-[10px] font-bold text-slate-500 uppercase tracking-widest transition-opacity duration-300;
+        }
+        .nav-item a {
+            @apply flex items-center px-3 py-1.5 text-[12px] font-medium text-slate-400 rounded-lg transition-all duration-200 whitespace-nowrap overflow-hidden;
+        }
+        .nav-item a:hover {
+            @apply text-slate-100 bg-slate-800/50;
+        }
+        .nav-item a.active {
+            @apply text-white bg-brand-600/10 font-semibold;
+            box-shadow: inset 2px 0 0 theme('colors.brand.500');
+        }
+
+        /* Sidebar Collapsed State */
+        .sidebar-collapsed {
+            width: 80px !important;
+        }
+        .sidebar-collapsed .nav-section-title,
+        .sidebar-collapsed .nav-item span {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+        .sidebar-collapsed .logo-text {
+            display: none;
+        }
+        .sidebar-collapsed .version-info {
+            display: none;
+        }
+        .sidebar-collapsed .nav-item {
+            justify-content: center;
+        }
+
+        /* Markdown Overrides */
+        .markdown-body {
+            @apply text-slate-300 leading-relaxed;
+        }
+    </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-300 font-sans min-h-screen flex overflow-hidden">
+    <!-- Preloader -->
+    <div id="preloader" class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center gap-8 transition-opacity duration-700">
+        <div class="w-12 h-12 bg-white rounded-full animate-pulse-custom"></div>
+        <div class="text-[10px] font-bold text-white uppercase tracking-[0.4em] opacity-30">Synchronizing Anthology</div>
+    </div>
+
+    <style>
+        @keyframes pulse-custom {
+            0%, 100% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pulse-custom {
+            animation: pulse-custom 1s ease-in-out infinite;
+        }
+    </style>
+
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 w-full z-50 bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-800 p-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 bg-brand-600 rounded-md flex items-center justify-center">
+                <span class="text-white text-[10px] font-black">TC</span>
+            </div>
+            <h2 class="text-lg font-bold text-white tracking-tight">TaughtCode</h2>
+        </div>
+        <button id="mobileMenuBtn" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg focus:outline-none transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-60 bg-[#0f172a] border-r border-slate-800 transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out z-40 flex flex-col">
+        <div class="px-5 py-6 flex items-center justify-between">
+            <a href="/docs" class="flex items-center gap-3 group">
+                <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center shadow-lg shadow-brand-600/20 flex-shrink-0">
+                    <span class="text-white text-[10px] font-black tracking-tighter">TC</span>
+                </div>
+                <div class="flex flex-col logo-text transition-opacity duration-300">
+                    <span class="text-sm font-bold text-white leading-tight">TaughtCode</span>
+                    <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Docs</span>
+                </div>
+            </a>
+            <button id="collapseBtn" class="hidden md:flex p-1.5 text-slate-500 hover:text-white hover:bg-slate-800 rounded-md transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <nav class="flex-1 px-3 pb-6 overflow-y-auto space-y-2 overflow-x-hidden">
+            {{navigation}}
+        </nav>
+
+        <div class="p-3 border-t border-slate-800/50">
+            <div class="bg-slate-800/30 rounded-lg p-2.5 border border-slate-800/50 flex items-center justify-center">
+                <div class="flex items-center gap-3 w-full">
+                    <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-300 flex-shrink-0">
+                        TC
+                    </div>
+                    <div class="flex flex-col version-info overflow-hidden">
+                        <span class="text-[10px] font-semibold text-slate-200 whitespace-nowrap">v1.0.0 &middot; 28 Jan 2026</span>
+                        <span class="text-[9px] text-slate-500 whitespace-nowrap">Latest Stable Release</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Overlay -->
+    <div id="overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-30 hidden md:hidden"></div>
+
+    <!-- Main Content -->
+    <main id="mainContent" class="flex-1 md:ml-60 h-screen overflow-y-auto bg-[#0b0f19] scroll-smooth transition-all duration-300">
+        <div class="max-w-5xl mx-auto px-6 py-12 md:py-16 mt-16 md:mt-0">
+            <!-- Header -->
+            <header class="mb-12">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight leading-tight">{{title}}</h1>
+                <div class="h-1 w-20 bg-brand-600 rounded-full"></div>
+            </header>
+            
+            <!-- Content -->
+            <div class="markdown-body">
+                {{content}}
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-16 pt-8 border-t border-dark-700 text-center text-gray-500 text-sm">
+                <p>&copy; <script>document.write(new Date().getFullYear())</script> TaughtCode. All rights reserved.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // DOM Elements
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const collapseBtn = document.getElementById('collapseBtn');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const overlay = document.getElementById('overlay');
+        
+        // State
+        let isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+        // Initialize state
+        function init() {
+            if (isCollapsed) {
+                toggleSidebar(false); // Don't animate on init
+            }
+        }
+
+        // Toggle Sidebar Function
+        function toggleSidebar(animate = true) {
+            if (isCollapsed) {
+                // Collapse
+                sidebar.classList.add('sidebar-collapsed');
+                mainContent.classList.remove('md:ml-60');
+                mainContent.classList.add('md:ml-[80px]');
+                collapseBtn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                    </svg>
+                `;
+            } else {
+                // Expand
+                sidebar.classList.remove('sidebar-collapsed');
+                mainContent.classList.add('md:ml-60');
+                mainContent.classList.remove('md:ml-[80px]');
+                collapseBtn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                    </svg>
+                `;
+            }
+        }
+
+        // Event Listeners
+        collapseBtn.addEventListener('click', () => {
+            isCollapsed = !isCollapsed;
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+            toggleSidebar();
+        });
+
+        // Mobile Menu Logic
+        function toggleMobileMenu() {
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            if (isClosed) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+        overlay.addEventListener('click', toggleMobileMenu);
+
+        // Run initialization
+        init();
+
+        // Hide Preloader
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            preloader.style.opacity = '0';
+            setTimeout(() => preloader.style.display = 'none', 700);
+        });
+
+        // Highlight active code blocks if any (optional enhancement)
+        document.querySelectorAll('pre code').forEach((block) => {
+            // Placeholder for syntax highlighting logic if needed later
+        });
+    </script>
+    <!-- Mermaid JS for Diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            fontFamily: 'Fira Code'
+        });
+    </script>
+</body>
+</html>

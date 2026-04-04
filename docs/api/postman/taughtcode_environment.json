@@ -37,6 +37,24 @@
 			"value": "http://localhost:7001/api/v1",
 			"type": "default",
 			"enabled": true
+		},
+		{
+			"key": "THREAD_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "BOOK_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "PAGE_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",

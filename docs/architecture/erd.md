@@ -14,6 +14,9 @@ flowchart TD
     ApiKey[API_KEY<br/>id: PK<br/>key_hash<br/>scopes<br/>expires_at]
     Template[ARTICLE_TEMPLATE<br/>id: PK<br/>structure: JSON<br/>aiInstructions]
     Article[ARTICLE<br/>id: PK<br/>status: Enum<br/>content: HTML]
+    Conversation[CONVERSATION<br/>id: PK<br/>messages: Array<br/>bookId: FK]
+    Book[BOOK<br/>id: PK<br/>type: Enum<br/>chapters: Array]
+    Page[PAGE<br/>id: PK<br/>bookId: FK<br/>chapterId: FK<br/>content: HTML]
     Job[JOB<br/>id: PK<br/>status: Enum<br/>bullmq_job_id: UK<br/>data: JSONB<br/>result: JSONB]
 
     %% Relationships
@@ -22,9 +25,15 @@ flowchart TD
     User -->|initiates| Job
     User -->|creates| Template
     User -->|owns| ApiKey
+    User -->|initiates| Conversation
+    User -->|authors| Book
     
+    Conversation -->|drafts_for| Book
+    Book -->|contains| Page
+
     Template -->|structures| Article
     Article -.->|generated_by| Job
+    Page -.->|generated_by| Job
 ```
 
 ## 2. Authentication Architecture

@@ -38,6 +38,49 @@ Update details of the current user.
 - **Body Parameters**: (JSON)
     - Any writable User schema field (e.g., `bio`, `displayName`, `preferences`).
 
+## Media Management
+
+### Update Profile Picture
+Update the currently authenticated user's profile picture.
+
+- **URL**: `/me/photo`
+- **Method**: `PATCH`
+- **Content-Type**: `multipart/form-data`
+- **Body Parameters**:
+    - `file` (File, Required): The image file.
+- **Success Response**: `200 OK` with updated User object.
+
+### Update Cover Photo
+Update the currently authenticated user's cover photo.
+
+- **URL**: `/me/cover`
+- **Method**: `PATCH`
+- **Content-Type**: `multipart/form-data`
+- **Body Parameters**:
+    - `file` (File, Required): The image file.
+- **Success Response**: `200 OK` with updated User object.
+
+### Add Gallery Asset
+Add a photo or video to the user's gallery.
+
+- **URL**: `/me/gallery`
+- **Method**: `POST`
+- **Content-Type**: `multipart/form-data`
+- **Body Parameters**:
+    - `file` (File, Required): The image or video file.
+    - `title` (String, Optional): Title for the asset.
+    - `description` (String, Optional): Description for the asset.
+- **Success Response**: `200 OK` with updated User object.
+
+### Delete Gallery Asset
+Remove an asset from the user's gallery and storage.
+
+- **URL**: `/me/gallery`
+- **Method**: `DELETE`
+- **Body Parameters**:
+    - `assetUrl` (String, Required): The full URL of the asset to delete.
+- **Success Response**: `200 OK` with updated User object.
+
 ## User Management
 
 ### Get User by ID

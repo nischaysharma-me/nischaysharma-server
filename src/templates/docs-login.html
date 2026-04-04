@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Access - TaughtCode</title>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#121212',
+                            800: '#1e1e1e',
+                            700: '#2d2d2d',
+                        },
+                        brand: {
+                            500: '#6366f1', // Indigo 500
+                            600: '#4f46e5', // Indigo 600
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-dark-900 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-dark-800 rounded-2xl shadow-2xl p-8 border border-dark-700">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">🔒 Documentation Access</h1>
+            <p class="text-gray-400 text-sm">Please enter the password to access the documentation.</p>
+        </div>
+
+        <form id="loginForm" method="POST" class="space-y-6">
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                <div class="relative">
+                    <input type="password" id="password" name="password" required autofocus
+                        class="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white placeholder-gray-500 transition-all duration-200 outline-none"
+                        placeholder="Enter access password">
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full py-3 px-4 bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg transform transition-all duration-200 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-800 focus:ring-brand-500">
+                Access Documentation
+            </button>
+
+            <div class="error hidden mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200 text-sm text-center" id="error">
+                {{errorMessage}}
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const errorDiv = document.getElementById('error');
+
+        // Show error if it exists on load
+        const initialError = "{{errorMessage}}";
+        if(initialError && initialError.length > 0) {
+            errorDiv.classList.remove('hidden');
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+
+            try {
+                const formData = new URLSearchParams();
+                formData.append('password', password);
+
+                const response = await fetch(window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData.toString()
+                });
+
+                if (response.ok || response.redirected) {
+                    window.location.reload();
+                } else {
+                    const text = await response.text();
+                    let errorMessage = 'Invalid password. Please try again.';
+
+                    if (text.includes('<!DOCTYPE html>') || text.includes('<html')) {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(text, 'text/html');
+                        const errorMsg = doc.querySelector('.error');
+                        if (errorMsg && errorMsg.textContent.trim()) {
+                            errorMessage = errorMsg.textContent.trim();
+                        }
+                    } else {
+                        try {
+                            const data = JSON.parse(text);
+                            if(data.error) errorMessage = data.error;
+                        } catch {}
+                    }
+                    
+                    errorDiv.textContent = errorMessage;
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

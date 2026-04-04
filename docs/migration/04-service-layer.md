@@ -12,8 +12,6 @@ Handles the lifecycle of articles.
     5.  Saves the article as a `draft`.
 *   **`publishArticle(id, authorId)`**:
     *   Verifies ownership.
-    *   Minifies the HTML content.
-    *   Writes the content to the local filesystem (`docs/articles/`) as a Markdown file (simulating a CMS publish).
     *   Updates status to `published`.
 *   **`checkAccess(article, userId)`**: Implements the authorization logic for reading articles (Free vs. Paid vs. Subscription).
 

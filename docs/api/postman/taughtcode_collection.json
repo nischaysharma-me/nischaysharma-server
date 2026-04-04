@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "a1b2c3d4-5678-90ef-ghij-klmnopqrst",
 		"name": "TaughtCode API",
-		"description": "API collection for TaughtCode server, including User Profile and Article management.",
+		"description": "API collection for TaughtCode server, including User Profile, Article, and Threaded Book management.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -189,11 +189,48 @@
 						}
 					},
 					"response": []
+				}
+			]
+		},
+		{
+			"name": "Conversations",
+			"item": [
+				{
+					"name": "Create Thread",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Discussion about AI\",\n    \"initialMessage\": \"Hello, can you help me write a book?\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/conversations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"conversations"
+							]
+						}
+					},
+					"response": []
 				},
 				{
-					"name": "Deactivate User",
+					"name": "List My Threads",
 					"request": {
-						"method": "PATCH",
+						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
@@ -202,19 +239,41 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/users/:id/deactivate",
+							"raw": "{{base_url}}/conversations",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"users",
-								":id",
-								"deactivate"
+								"conversations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Thread Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/conversations/:threadId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"conversations",
+								":threadId"
 							],
 							"variable": [
 								{
-									"key": "id",
-									"value": "USER_ID"
+									"key": "threadId",
+									"value": "{{THREAD_ID}}"
 								}
 							]
 						}
@@ -222,7 +281,7 @@
 					"response": []
 				},
 				{
-					"name": "Disable User",
+					"name": "Update Thread (Title/Pin)",
 					"request": {
 						"method": "PATCH",
 						"header": [
@@ -232,20 +291,28 @@
 								"type": "text"
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Quantum Physics Deep Dive\",\n    \"isPinned\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{base_url}}/users/:id/disable",
+							"raw": "{{base_url}}/conversations/:threadId",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"users",
-								":id",
-								"disable"
+								"conversations",
+								":threadId"
 							],
 							"variable": [
 								{
-									"key": "id",
-									"value": "USER_ID"
+									"key": "threadId",
+									"value": "{{THREAD_ID}}"
 								}
 							]
 						}
@@ -253,30 +320,44 @@
 					"response": []
 				},
 				{
-					"name": "Activate User",
+					"name": "Stream AI Reply",
 					"request": {
-						"method": "PATCH",
+						"method": "POST",
 						"header": [
 							{
 								"key": "Authorization",
 								"value": "Bearer {{auth_token}}",
 								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "text/event-stream",
+								"type": "text"
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Let's brainstorm about the origin of linguistics. Once we are ready, I'll ask you to draft a page.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{base_url}}/users/:id/activate",
+							"raw": "{{base_url}}/conversations/:threadId/stream",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"users",
-								":id",
-								"activate"
+								"conversations",
+								":threadId",
+								"stream"
 							],
 							"variable": [
 								{
-									"key": "id",
-									"value": "USER_ID"
+									"key": "threadId",
+									"value": "{{THREAD_ID}}"
 								}
 							]
 						}
@@ -286,10 +367,10 @@
 			]
 		},
 		{
-			"name": "Articles",
+			"name": "Books",
 			"item": [
 				{
-					"name": "Create Article",
+					"name": "Create Book",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -301,7 +382,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"My First Article\",\n    \"content\": \"<h1>Hello World</h1><p>This is my first article content.</p>\",\n    \"tags\": [\"tech\", \"coding\"],\n    \"status\": \"published\",\n    \"access\": \"free\"\n}",
+							"raw": "{\n    \"title\": \"The Origins of Linguistics\",\n    \"description\": \"A collaborative study\",\n    \"type\": \"book\",\n    \"threadId\": \"{{THREAD_ID}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -309,19 +390,19 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/articles",
+							"raw": "{{base_url}}/books",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"articles"
+								"books"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Generate Article (AI)",
+					"name": "Create Paper",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -333,7 +414,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"topic\": \"The Future of Quantum Computing\",\n    \"depth\": \"deep-dive\",\n    \"instructions\": \"Focus on scalability challenges\",\n    \"templateId\": \"OPTIONAL_TEMPLATE_ID\"\n}",
+							"raw": "{\n    \"title\": \"Quantum Scaling Research\",\n    \"description\": \"One flow paper\",\n    \"type\": \"paper\",\n    \"threadId\": \"{{THREAD_ID}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -341,66 +422,65 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/articles/generate",
+							"raw": "{{base_url}}/books",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"articles",
-								"generate"
+								"books"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "List Articles",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/articles?status=published",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"articles"
-							],
-							"query": [
-								{
-									"key": "status",
-									"value": "published"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Article By Slug",
+					"name": "List My Books",
 					"request": {
 						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
 								"value": "Bearer {{auth_token}}",
-								"type": "text",
-								"disabled": true
+								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/articles/:slug",
+							"raw": "{{base_url}}/books",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"articles",
-								":slug"
+								"books"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Full Book Hierarchy",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/books/:bookId/pages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"books",
+								":bookId",
+								"pages"
 							],
 							"variable": [
 								{
-									"key": "slug",
-									"value": "my-first-article"
+									"key": "bookId",
+									"value": "{{BOOK_ID}}"
 								}
 							]
 						}
@@ -408,7 +488,7 @@
 					"response": []
 				},
 				{
-					"name": "Update Article",
+					"name": "Update Book Metadata",
 					"request": {
 						"method": "PATCH",
 						"header": [
@@ -420,7 +500,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"description\": \"Updated description\"\n}",
+							"raw": "{\n    \"title\": \"Updated Title\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -428,147 +508,19 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/articles/:id",
+							"raw": "{{base_url}}/books/:bookId",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"articles",
-								":id"
+								"books",
+								":bookId"
 							],
 							"variable": [
 								{
-									"key": "id",
-									"value": "ARTICLE_ID"
+									"key": "bookId",
+									"value": "{{BOOK_ID}}"
 								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Publish Article",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/articles/:id/publish",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"articles",
-								":id",
-								"publish"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "ARTICLE_ID"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Add Review",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"rating\": 5,\n    \"comment\": \"Great article!\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/articles/:id/reviews",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"articles",
-								":id",
-								"reviews"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "ARTICLE_ID"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Templates",
-			"item": [
-				{
-					"name": "Generate Template (AI)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"description\": \"A comprehensive tutorial on Machine Learning basics\",\n    \"category\": \"tutorial\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/articles/templates/generate",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"articles",
-								"templates",
-								"generate"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "List Templates",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/articles/templates",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"articles",
-								"templates"
 							]
 						}
 					},
@@ -602,7 +554,67 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "JOB_ID"
+									"value": "{{JOB_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Queue Manual Job",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"article-generation\",\n    \"data\": {\n        \"topic\": \"The Future of AI\",\n        \"depth\": \"standard\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Articles",
+			"item": [
+				{
+					"name": "List Articles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/articles?status=published",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"articles"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "published"
 								}
 							]
 						}
@@ -627,7 +639,6 @@
 					"",
 					"const authUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;",
 					"",
-					"// Check if token exists and is not expired (tokens typically last 1 hour)",
 					"if (currentToken && tokenExpiry && currentTime < tokenExpiry) {",
 					"    console.log(\"Using existing valid token\");",
 					"} else {",
@@ -654,7 +665,6 @@
 					"            const jsonResponse = res.json();",
 					"            if (jsonResponse.idToken) {",
 					"                pm.environment.set(\"auth_token\", jsonResponse.idToken);",
-					"                // Set expiry to 55 minutes from now (token lasts 1 hour, refresh 5 min early)",
 					"                pm.environment.set(\"token_expiry\", currentTime + (55 * 60 * 1000));",
 					"                console.log(\"New token obtained and stored\");",
 					"            } else {",

@@ -25,8 +25,20 @@ Please provide the output in strict JSON format...`
 
 **Key Features**:
 -   **Strict JSON**: Ensures the output can be parsed programmatically.
--   **Layout Control**: The `layout` field dictates how the section is rendered.
+-   **Layout & Aspect Ratio Control**: The `layout` field dictates how the section is rendered, while `imageAspectRatio` ensures images are generated in the correct dimensions (e.g., 16:9, 4:3, 1:1).
 -   **Depth Control**: Adjusts section count and complexity based on user request.
+
+## 1.5 Asset Generation Logic
+
+**Goal**: To generate visual assets (cover image and section graphics) with high quality and consistency.
+
+**Background Image (Cover)**:
+-   **Prompt**: Strictly instructed to have NO TEXT, typography, or words.
+-   **Configuration**: Forced to **16:9** aspect ratio and **2K** resolution for professional aesthetics.
+
+**Section Images**:
+-   **Prompt**: Contextually enhanced with the article topic.
+-   **Configuration**: Uses the dynamic `imageAspectRatio` predicted during Step 1.
 
 ## 2. Content Generation Prompt
 
@@ -52,7 +64,9 @@ Instructions:
 ## Workflow
 
 1.  **User Input**: Topic received via API.
-2.  **Step 1 (AI)**: Generate JSON Structure.
-3.  **Step 1.5 (AI & Storage)**: Iterate through sections. If `imagePrompt` exists, generate image with AI, upload to Storage, and get URL.
-4.  **Step 2 (AI)**: Generate Markdown content using the Structure + Image URLs.
+2.  **Step 1 (AI)**: Generate JSON Structure (including layouts and aspect ratios).
+3.  **Step 1.5 (AI & Storage)**:
+    -   Generate high-res background (cover) image (16:9, no text).
+    -   Iterate through sections. If `imagePrompt` exists, generate image using the predicted `imageAspectRatio`, upload to Storage, and get URL.
+4.  **Step 2 (AI)**: Generate HTML content using the Structure + Image URLs.
 5.  **Save**: Store the final Article object in the database.

@@ -21,27 +21,68 @@ This class standardizes interactions with Firestore collections.
 
 ### 1. `User` (`userProfileModel.js`)
 *   **Collection**: `users`
-*   **Key Fields**: `uid` (Firebase Auth ID), `email`, `role` (user/admin), `organizationId`, `preferences`.
+*   **Key Fields**: `uid`, `email`, `role`, `organizationId`, `analytics`.
+*   **Detail**: [user.md](../schemas/user.md)
 
 ### 2. `Article` (`articleModel.js`)
 *   **Collection**: `articles`
-*   **Key Fields**: `slug` (Unique), `title`, `content` (HTML), `status` (draft/published), `access` (free/paid), `authorId`.
+*   **Key Fields**: `slug`, `title`, `content`, `status`, `access`, `authorId`.
+*   **Detail**: [article.md](../schemas/article.md)
 
 ### 3. `Job` (`jobModel.js`)
 *   **Collection**: `jobs`
-*   **Key Fields**: `type` (job type), `status` (queued/processing/completed/failed), `data` (input payload), `result` (output), `error`.
+*   **Key Fields**: `type`, `status` (queued/processing/completed/failed), `data`, `result`.
+*   **Detail**: [job.md](../schemas/job.md)
 
-### 4. `ArticleTemplate` (`articleTemplateModel.js`)
-*   **Collection**: `article_templates`
-*   **Key Fields**: `structure` (JSON array of sections), `aiInstructions`, `category`.
+### 4. `Book` (`bookModel.js`)
+*   **Collection**: `books`
+*   **Key Fields**: `userId`, `title`, `type` (book/paper), `chapters`.
+*   **Detail**: [book.md](../schemas/book.md)
 
-### 5. `Organization` (`organizationModel.js`)
+### 5. `Page` (`pageModel.js`)
+*   **Collection**: `pages`
+*   **Key Fields**: `bookId`, `chapterId`, `content`, `status`.
+*   **Detail**: [page.md](../schemas/page.md)
+
+### 6. `Conversation` (`conversationModel.js`)
+*   **Collection**: `conversations`
+*   **Key Fields**: `userId`, `messages` (role/content history), `isPinned`.
+*   **Detail**: [conversation.md](../schemas/conversation.md)
+
+### 7. `Organization` (`organizationModel.js`)
 *   **Collection**: `organizations`
-*   **Key Fields**: `ownerId`, `settings` (allowed features).
+*   **Key Fields**: `ownerId`, `orgCode`, `settings`, `status`.
+*   **Detail**: [organization.md](../schemas/organization.md)
 
-### 6. `ApiKey` (`apiKeyModel.js`)
+### 8. `ArticleTemplate` (`articleTemplateModel.js`)
+*   **Collection**: `article_templates`
+*   **Key Fields**: `structure`, `aiInstructions`, `category`.
+*   **Detail**: [articleTemplate.md](../schemas/articleTemplate.md)
+
+### 9. `ApiKey` (`apiKeyModel.js`)
 *   **Collection**: `api_keys`
-*   **Key Fields**: `keyHash` (SHA256), `scopes`, `organizationId`, `expiresAt`.
+*   **Key Fields**: `keyHash`, `scopes`, `organizationId`.
+*   **Detail**: [apiKey.md](../schemas/apiKey.md)
+
+### 10. `ClientApp` (`clientAppModel.js`)
+*   **Collection**: `clientApps`
+*   **Key Fields**: `name`, `url`, `ownerId`, `permissions`.
+*   **Detail**: [clientApp.md](../schemas/clientApp.md)
+
+### 11. `Review` (`reviewModel.js`)
+*   **Collection**: `reviews`
+*   **Key Fields**: `articleId`, `userId`, `rating`, `comment`.
+*   **Detail**: [review.md](../schemas/review.md)
+
+### 12. `Tag` (`tagModel.js`)
+*   **Collection**: `tags`
+*   **Key Fields**: `name`, `slug`, `usageCount`.
+*   **Detail**: [tag.md](../schemas/tag.md)
+
+### 13. `Event` (`eventModel.js`)
+*   **Collection**: `events`
+*   **Key Fields**: `userId`, `type`, `payload`, `source`.
+*   **Detail**: [event.md](../schemas/event.md)
 
 ## Migration Considerations
 When migrating to a new framework (e.g., NestJS):
