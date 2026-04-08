@@ -12,6 +12,10 @@ const conversationSchema = {
         type: String, // Optional reference to the book being collaboratively authored
         default: null
     },
+    articleId: {
+        type: String, // Optional reference to the article being collaboratively authored
+        default: null
+    },
     title: {
         type: String,
         trim: true,

@@ -46,6 +46,10 @@ const articleSchema = {
         type: String, // Reference to ArticleTemplate id
         default: null
     },
+    threadId: {
+        type: String, // Reference to Conversation id (thread)
+        default: null
+    },
     references: {
         type: Array, // Array of reference objects or strings
         default: []
