@@ -10,6 +10,12 @@ import {
     updateBookPageToolSchema, 
     deleteBookPageToolSchema 
 } from '../tools/bookTools.js';
+import {
+    createDraftArticleToolSchema,
+    updateArticleToolSchema,
+    deleteArticleToolSchema
+} from '../tools/articleTools.js';
+import articleService from './articleService.js';
 
 /**
  * Service for handling AI conversation threads
@@ -130,7 +136,10 @@ class ConversationService {
                     draftChapterPageToolSchema,
                     createChapterToolSchema,
                     updateBookPageToolSchema,
-                    deleteBookPageToolSchema
+                    deleteBookPageToolSchema,
+                    createDraftArticleToolSchema,
+                    updateArticleToolSchema,
+                    deleteArticleToolSchema
                 ] 
             }]
         });
@@ -178,6 +187,50 @@ class ConversationService {
                             const errorMsg = `\n\n*Failed to generate image: ${error.message}*\n\n`;
                             fullResponse += errorMsg;
                             yield errorMsg;
+                        }
+                    }
+
+                    // --- Handle Threaded Article Tools ---
+                    if (['create_article', 'update_article', 'delete_article'].includes(call.name)) {
+                        const args = call.args || {};
+
+                        try {
+                            if (call.name === 'create_article') {
+                                yield `\n\n*Drafting article: **${args.title}**...*\n\n`;
+                                const newArticle = await articleService.createArticle({
+                                    title: args.title,
+                                    content: args.brief, // Initial content as brief
+                                    authorId: updatedThread.userId,
+                                    threadId: threadId,
+                                    status: 'draft'
+                                });
+                                // Link article to thread
+                                await Conversation.findByIdAndUpdate(threadId, { articleId: newArticle.id });
+                                const successMsg = `\n\n*Successfully created article: **${args.title}** (ID: ${newArticle.id}).*\n\n`;
+                                yield successMsg;
+                                fullResponse += successMsg;
+                            }
+
+                            if (call.name === 'update_article') {
+                                yield `\n\n*Updating article ID: ${args.articleId}...*\n\n`;
+                                await articleService.updateArticle(args.articleId, { content: args.content });
+                                const successMsg = `\n\n*Successfully updated article content.*\n\n`;
+                                yield successMsg;
+                                fullResponse += successMsg;
+                            }
+
+                            if (call.name === 'delete_article') {
+                                yield `\n\n*Deleting article ID: ${args.articleId}...*\n\n`;
+                                await articleService.deleteArticle(args.articleId);
+                                const successMsg = `\n\n*Successfully removed article.*\n\n`;
+                                yield successMsg;
+                                fullResponse += successMsg;
+                            }
+                        } catch (error) {
+                            console.error(`Article tool error (${call.name}):`, error);
+                            const errorMsg = `\n\n*Failed to execute ${call.name}: ${error.message}*\n\n`;
+                            yield errorMsg;
+                            fullResponse += errorMsg;
                         }
                     }
 
