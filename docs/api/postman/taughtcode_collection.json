@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "a1b2c3d4-5678-90ef-ghij-klmnopqrst",
 		"name": "TaughtCode API",
-		"description": "API collection for TaughtCode server, including User Profile, Article, and Threaded Book management.",
+		"description": "Comprehensive API collection for TaughtCode server.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -159,9 +159,14 @@
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "Organizations",
+			"item": [
 				{
-					"name": "Get User By ID",
+					"name": "List Organizations",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -172,19 +177,104 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/users/:id",
+							"raw": "{{base_url}}/organizations",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"users",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "USER_ID"
+								"organizations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Organization",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"My Organization\",\n    \"description\": \"A group for collaboration\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
 								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/organizations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"organizations"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Client Apps",
+			"item": [
+				{
+					"name": "List Client Apps",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/clients",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"clients"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Client App",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Mobile App\",\n    \"platform\": \"ios\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/clients",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"clients"
 							]
 						}
 					},
@@ -208,7 +298,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Discussion about AI\",\n    \"initialMessage\": \"Hello, can you help me write a book?\"\n}",
+							"raw": "{\n    \"title\": \"Discussion about AI\",\n    \"initialMessage\": \"Hello, can you help me write an article?\",\n    \"bookId\": null,\n    \"articleId\": null\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -222,6 +312,51 @@
 							],
 							"path": [
 								"conversations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Stream AI Reply",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "text/event-stream",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Let's brainstorm about the impact of AI on society. Once we are ready, I'll ask you to draft an article.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/conversations/:threadId/stream",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"conversations",
+								":threadId",
+								"stream"
+							],
+							"variable": [
+								{
+									"key": "threadId",
+									"value": "{{THREAD_ID}}"
+								}
 							]
 						}
 					},
@@ -249,120 +384,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Get Thread Details",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/conversations/:threadId",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"conversations",
-								":threadId"
-							],
-							"variable": [
-								{
-									"key": "threadId",
-									"value": "{{THREAD_ID}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Thread (Title/Pin)",
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"Quantum Physics Deep Dive\",\n    \"isPinned\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/conversations/:threadId",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"conversations",
-								":threadId"
-							],
-							"variable": [
-								{
-									"key": "threadId",
-									"value": "{{THREAD_ID}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Stream AI Reply",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							},
-							{
-								"key": "Accept",
-								"value": "text/event-stream",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"message\": \"Let's brainstorm about the origin of linguistics. Once we are ready, I'll ask you to draft a page.\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/conversations/:threadId/stream",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"conversations",
-								":threadId",
-								"stream"
-							],
-							"variable": [
-								{
-									"key": "threadId",
-									"value": "{{THREAD_ID}}"
-								}
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
@@ -382,39 +403,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"The Origins of Linguistics\",\n    \"description\": \"A collaborative study\",\n    \"type\": \"book\",\n    \"threadId\": \"{{THREAD_ID}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/books",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"books"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Paper",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"Quantum Scaling Research\",\n    \"description\": \"One flow paper\",\n    \"type\": \"paper\",\n    \"threadId\": \"{{THREAD_ID}}\"\n}",
+							"raw": "{\n    \"title\": \"Sample Book\",\n    \"description\": \"Book description\",\n    \"type\": \"book\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -451,323 +440,6 @@
 							],
 							"path": [
 								"books"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Full Book Hierarchy",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/books/:bookId/pages",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"books",
-								":bookId",
-								"pages"
-							],
-							"variable": [
-								{
-									"key": "bookId",
-									"value": "{{BOOK_ID}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Book Metadata",
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"Updated Title\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/books/:bookId",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"books",
-								":bookId"
-							],
-							"variable": [
-								{
-									"key": "bookId",
-									"value": "{{BOOK_ID}}"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Jobs",
-			"item": [
-				{
-					"name": "Get Job Status",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/jobs/:id",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"jobs",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "{{JOB_ID}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Queue Manual Job",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"article-generation\",\n    \"data\": {\n        \"topic\": \"The Future of AI\",\n        \"depth\": \"standard\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/jobs",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"jobs"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Billboards",
-			"item": [
-				{
-					"name": "List Billboards",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/billboards",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"billboards"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Billboard",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "title",
-									"value": "New Campaign",
-									"type": "text"
-								},
-								{
-									"key": "description",
-									"value": "Description of the campaign",
-									"type": "text"
-								},
-								{
-									"key": "image",
-									"type": "file",
-									"src": []
-								},
-								{
-									"key": "link",
-									"value": "https://example.com",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/billboards",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"billboards"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Billboard",
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "title",
-									"value": "Updated Campaign Title",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/billboards/:id",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"billboards",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "{{BILLBOARD_ID}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Billboard",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/billboards/:id",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"billboards",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "{{BILLBOARD_ID}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Generate Billboard Image",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"prompt\": \"A futuristic city with flying cars and neon lights\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/billboards/:id/generate-image",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"billboards",
-								":id",
-								"generate-image"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "{{BILLBOARD_ID}}"
-								}
 							]
 						}
 					},
@@ -819,31 +491,6 @@
 							"response": []
 						},
 						{
-							"name": "Get Template By Slug",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{base_url}}/articles/templates/:slug",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"articles",
-										"templates",
-										":slug"
-									],
-									"variable": [
-										{
-											"key": "slug",
-											"value": "technical-guide"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "Generate Template (AI)",
 							"request": {
 								"method": "POST",
@@ -856,7 +503,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"description\": \"A template for deep dive research papers\",\n    \"category\": \"technical-guide\"\n}",
+									"raw": "{\n    \"description\": \"Tutorial template\",\n    \"category\": \"tutorial\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -872,77 +519,6 @@
 										"articles",
 										"templates",
 										"generate"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Update Template",
-							"request": {
-								"method": "PATCH",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"name\": \"Updated Template Name\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{base_url}}/articles/templates/:id",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"articles",
-										"templates",
-										":id"
-									],
-									"variable": [
-										{
-											"key": "id",
-											"value": "{{TEMPLATE_ID}}"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete Template",
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "{{base_url}}/articles/templates/:id",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"articles",
-										"templates",
-										":id"
-									],
-									"variable": [
-										{
-											"key": "id",
-											"value": "{{TEMPLATE_ID}}"
-										}
 									]
 								}
 							},
@@ -986,7 +562,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"The Impact of AI on Jobs\",\n    \"content\": \"Full content goes here...\",\n    \"description\": \"A brief overview\",\n    \"tags\": [\"AI\", \"Jobs\", \"Future\"],\n    \"threadId\": \"{{THREAD_ID}}\"\n}",
+							"raw": "{\n    \"title\": \"Draft Article\",\n    \"content\": \"Initial content\",\n    \"threadId\": \"{{THREAD_ID}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1018,7 +594,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"topic\": \"Blockchain in Supply Chain\",\n    \"depth\": \"standard\",\n    \"templateId\": \"{{TEMPLATE_ID}}\"\n}",
+							"raw": "{\n    \"topic\": \"The Future of Web Development\",\n    \"depth\": \"standard\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1033,100 +609,6 @@
 							"path": [
 								"articles",
 								"generate"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Article By ID",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/articles/fetch/:id",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"articles",
-								"fetch",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "{{ARTICLE_ID}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Article By Slug",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/articles/:slug",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"articles",
-								":slug"
-							],
-							"variable": [
-								{
-									"key": "slug",
-									"value": "the-impact-of-ai-on-jobs"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Article",
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"Updated Article Title\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/articles/:id",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"articles",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "{{ARTICLE_ID}}"
-								}
 							]
 						}
 					},
@@ -1162,62 +644,31 @@
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "Billboards",
+			"item": [
 				{
-					"name": "Delete Article",
+					"name": "List Billboards",
 					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
+						"method": "GET",
+						"header": [],
 						"url": {
-							"raw": "{{base_url}}/articles/:id",
+							"raw": "{{base_url}}/billboards",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"articles",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "{{ARTICLE_ID}}"
-								}
+								"billboards"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Delete All My Articles",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/articles",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"articles"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Add Review",
+					"name": "Create Billboard",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -1228,28 +679,61 @@
 							}
 						],
 						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"rating\": 5,\n    \"comment\": \"Excellent read!\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "Promotion",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
 								}
-							}
+							]
 						},
 						"url": {
-							"raw": "{{base_url}}/articles/:id/reviews",
+							"raw": "{{base_url}}/billboards",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"articles",
-								":id",
-								"reviews"
+								"billboards"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Get Job Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/jobs/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								":id"
 							],
 							"variable": [
 								{
 									"key": "id",
-									"value": "{{ARTICLE_ID}}"
+									"value": "{{JOB_ID}}"
 								}
 							]
 						}
