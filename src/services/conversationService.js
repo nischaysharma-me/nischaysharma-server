@@ -15,7 +15,7 @@ import {
     updateArticleToolSchema,
     deleteArticleToolSchema
 } from '../tools/articleTools.js';
-import articleService from './articleService.js';
+import * as articleService from './articleService.js';
 
 /**
  * Service for handling AI conversation threads
