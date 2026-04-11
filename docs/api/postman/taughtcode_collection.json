@@ -163,291 +163,6 @@
 			]
 		},
 		{
-			"name": "Organizations",
-			"item": [
-				{
-					"name": "List Organizations",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/organizations",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"organizations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Organization",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"My Organization\",\n    \"description\": \"A group for collaboration\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/organizations",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"organizations"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Client Apps",
-			"item": [
-				{
-					"name": "List Client Apps",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/clients",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"clients"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Client App",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"Mobile App\",\n    \"platform\": \"ios\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/clients",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"clients"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Conversations",
-			"item": [
-				{
-					"name": "Create Thread",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"Discussion about AI\",\n    \"initialMessage\": \"Hello, can you help me write an article?\",\n    \"bookId\": null,\n    \"articleId\": null\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/conversations",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"conversations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Stream AI Reply",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							},
-							{
-								"key": "Accept",
-								"value": "text/event-stream",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"message\": \"Let's brainstorm about the impact of AI on society. Once we are ready, I'll ask you to draft an article.\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/conversations/:threadId/stream",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"conversations",
-								":threadId",
-								"stream"
-							],
-							"variable": [
-								{
-									"key": "threadId",
-									"value": "{{THREAD_ID}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "List My Threads",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/conversations",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"conversations"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Books",
-			"item": [
-				{
-					"name": "Create Book",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"Sample Book\",\n    \"description\": \"Book description\",\n    \"type\": \"book\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/books",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"books"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "List My Books",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/books",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"books"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
 			"name": "Articles",
 			"item": [
 				{
@@ -615,6 +330,76 @@
 					"response": []
 				},
 				{
+					"name": "Get Article By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/articles/fetch/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"articles",
+								"fetch",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{ARTICLE_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Article",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Title\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/articles/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"articles",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{ARTICLE_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Publish Article",
 					"request": {
 						"method": "POST",
@@ -639,6 +424,158 @@
 								{
 									"key": "id",
 									"value": "{{ARTICLE_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"rating\": 5,\n    \"comment\": \"Great article!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/articles/:id/reviews",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"articles",
+								":id",
+								"reviews"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{ARTICLE_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Article",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/articles/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"articles",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{ARTICLE_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Conversations",
+			"item": [
+				{
+					"name": "Create Thread",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Discussion about AI\",\n    \"initialMessage\": \"Hello, can you help me write an article?\",\n    \"bookId\": null,\n    \"articleId\": null\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/conversations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"conversations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Stream AI Reply",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "text/event-stream",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Let's brainstorm about the impact of AI on society. Once we are ready, I'll ask you to draft an article.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/conversations/:threadId/stream",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"conversations",
+								":threadId",
+								"stream"
+							],
+							"variable": [
+								{
+									"key": "threadId",
+									"value": "{{THREAD_ID}}"
 								}
 							]
 						}
@@ -700,41 +637,6 @@
 							],
 							"path": [
 								"billboards"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Jobs",
-			"item": [
-				{
-					"name": "Get Job Status",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/jobs/:id",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"jobs",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "{{JOB_ID}}"
-								}
 							]
 						}
 					},
