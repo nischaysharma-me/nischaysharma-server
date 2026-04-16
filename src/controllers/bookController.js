@@ -1,4 +1,5 @@
 import bookService from '../services/bookService.js';
+import * as userService from '../services/userProfileService.js';
 
 class BookController {
     /**
@@ -24,11 +25,26 @@ class BookController {
     }
 
     /**
-     * Get all books for the authenticated user
+     * Get all books (Publicly returns primary admin's books if unauthenticated)
      */
     async getUserBooks(req, res) {
         try {
-            const userId = req.user.uid;
+            let userId = req.user?.uid;
+            
+            if (!userId) {
+                const admin = await userService.getPrimaryAdmin();
+                if (admin) {
+                    userId = admin.uid;
+                }
+            }
+
+            if (!userId) {
+                return res.json({
+                    success: true,
+                    data: []
+                });
+            }
+
             const { full } = req.query;
             let books = await bookService.getUserBooks(userId);
 

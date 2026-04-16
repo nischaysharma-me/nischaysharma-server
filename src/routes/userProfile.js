@@ -16,8 +16,10 @@ const router = express.Router();
 
 // Public routes
 router.get('/public/admin', userController.getPublicAdminProfile);
+router.get('/', userController.getAllUsers);
+router.get('/:id', userController.getUserById);
 
-// Middleware
+// Middleware for authenticated routes
 router.use(isAuthenticated);
 
 /**
@@ -218,28 +220,6 @@ router.delete('/me/gallery', userController.deleteGalleryAsset);
 
 /**
  * @swagger
- * /users/{id}:
- *   get:
- *     summary: Get user by ID
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: User profile found
- *       404:
- *         description: User not found
- */
-router.get('/:id', userController.getUserById);
-
-/**
- * @swagger
  * /users/{id}/deactivate:
  *   patch:
  *     summary: Deactivate user account (Soft delete)
@@ -257,29 +237,6 @@ router.get('/:id', userController.getUserById);
  *         description: User deactivated
  */
 router.patch('/:id/deactivate', userController.deactivateUser);
-
-/**
- * @swagger
- * /users:
- *   get:
- *     summary: List all users (Admin)
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: role
- *         schema:
- *           type: string
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: List of users
- */
-router.get('/', userController.getAllUsers);
 
 /**
  * @swagger

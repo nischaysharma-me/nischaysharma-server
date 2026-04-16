@@ -237,7 +237,6 @@ router.delete('/',
 );
 
 router.get('/fetch/:id',
-    isAuthenticated,
     articleController.getArticleById
 );
 

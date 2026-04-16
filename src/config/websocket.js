@@ -1,7 +1,6 @@
 import { Server } from 'socket.io';
 import logger from '../utils/logger.js';
 import { admin } from './firebase.js';
-import ClientApp from '../models/clientAppModel.js';
 
 let io;
 
@@ -24,7 +23,6 @@ export const initWebSocket = (server) => {
             const decodedToken = await admin.auth().verifyIdToken(token);
             socket.userId = decodedToken.uid;
             
-            // Optional: Handle ClientApp/deviceId association
             const deviceId = socket.handshake.auth.deviceId;
             if (deviceId) {
                 socket.deviceId = deviceId;
@@ -45,7 +43,6 @@ export const initWebSocket = (server) => {
         
         if (socket.deviceId) {
             socket.join(`device:${socket.deviceId}`);
-            updateDeviceSocketId(socket.userId, socket.deviceId, socket.id);
         }
 
         socket.on('disconnect', () => {
@@ -54,30 +51,6 @@ export const initWebSocket = (server) => {
     });
 
     return io;
-};
-
-const updateDeviceSocketId = async (userId, deviceId, socketId) => {
-    try {
-        // Find ClientApps owned by this user and update the device's socketId
-        const clientApps = await ClientApp.find({ ownerId: userId });
-        
-        for (const app of clientApps) {
-            let updated = false;
-            const registeredDevices = (app.registeredDevices || []).map(device => {
-                if (device.deviceId === deviceId) {
-                    updated = true;
-                    return { ...device, socketId, lastConnectedAt: new Date() };
-                }
-                return device;
-            });
-
-            if (updated) {
-                await ClientApp.findByIdAndUpdate(app.id, { registeredDevices });
-            }
-        }
-    } catch (error) {
-        logger.error(`Error updating device socketId: ${error.message}`);
-    }
 };
 
 export const getIO = () => {
