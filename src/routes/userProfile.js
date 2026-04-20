@@ -16,6 +16,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/public/admin', userController.getPublicAdminProfile);
+router.get('/public/home', userController.getHomeData);
 router.get('/', userController.getAllUsers);
 router.get('/:id', userController.getUserById);
 

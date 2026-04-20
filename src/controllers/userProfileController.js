@@ -80,6 +80,18 @@ const getPublicAdminProfile = async (req, res) => {
 };
 
 /**
+ * Get consolidated data for the home page
+ */
+const getHomeData = async (req, res) => {
+    try {
+        const data = await userService.getHomeData();
+        res.json({ success: true, data });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
  * Update user profile
  */
 const updateUser = async (req, res) => {
@@ -245,6 +257,7 @@ export {
     onboardUser,
     getMe,
     getPublicAdminProfile,
+    getHomeData,
     getUserById,
     updateUser,
     getAllUsers,

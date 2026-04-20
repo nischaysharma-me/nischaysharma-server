@@ -1,4 +1,4 @@
-import { User } from '../models/index.js';
+import { User, Article, Book } from '../models/index.js';
 import logger from '../utils/logger.js';
 import * as storageService from './storageService.js';
 
@@ -373,6 +373,71 @@ async function deleteGalleryAsset(uid, assetUrl) {
     return await updateUser(uid, { gallery: updatedGallery });
 }
 
+/**
+ * Populate featured items with full data (Article/Book)
+ * @param {Object} user 
+ */
+async function populateFeaturedItems(user) {
+    if (!user || !user.featured || !Array.isArray(user.featured)) {
+        return [];
+    }
+
+    const populatedItems = await Promise.all(user.featured.map(async (item) => {
+        try {
+            let data = null;
+            if (item.type === 'article') {
+                data = await Article.findById(item.id);
+            } else if (item.type === 'book') {
+                data = await Book.findById(item.id);
+            }
+            
+            if (data) {
+                return {
+                    ...item,
+                    data
+                };
+            }
+            return null;
+        } catch (error) {
+            logger.warn(`Failed to populate featured item: ${item.id}`, error);
+            return null;
+        }
+    }));
+
+    return populatedItems.filter(item => item !== null);
+}
+
+/**
+ * Get consolidated data for the public home page
+ */
+async function getHomeData() {
+    const admin = await getPrimaryAdmin();
+    if (!admin) {
+        return {
+            profile: null,
+            featured: []
+        };
+    }
+
+    let featured = await populateFeaturedItems(admin);
+
+    // Fallback: If no featured items, get latest published articles
+    if (featured.length === 0) {
+        const latestArticles = await Article.find({ status: 'published' }, { limit: 10, sort: { createdAt: -1 } });
+        featured = latestArticles.map(article => ({
+            id: article.id,
+            type: 'article',
+            title: article.title,
+            data: article
+        }));
+    }
+
+    return {
+        profile: admin,
+        featured
+    };
+}
+
 export {
     onboardUser,
     getMe,
@@ -390,5 +455,7 @@ export {
     updateProfilePicture,
     updateCoverPhoto,
     addGalleryAsset,
-    deleteGalleryAsset
+    deleteGalleryAsset,
+    populateFeaturedItems,
+    getHomeData
 };
