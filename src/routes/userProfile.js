@@ -3,7 +3,7 @@ import * as userController from '../controllers/userProfileController.js';
 import { isAuthenticated } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
 import { validateRequest } from '../middleware/validateRequest.js';
-import { onboardUserSchema, updateUserSchema } from '../validation/userSchemas.js';
+import { updateUserSchema } from '../validation/userSchemas.js';
 
 const router = express.Router();
 
@@ -22,69 +22,6 @@ router.get('/:id', userController.getUserById);
 
 // Middleware for authenticated routes
 router.use(isAuthenticated);
-
-/**
- * @swagger
- * /users/onboard:
- *   post:
- *     summary: Onboard a new user
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               photo:
- *                 type: string
- *                 format: binary
- *                 description: Profile picture
- *               email:
- *                 type: string
- *                 format: email
- *               displayName:
- *                 type: string
- *               occupation:
- *                 type: string
- *               bio:
- *                 type: string
- *               hobbies:
- *                 type: array
- *                 items:
- *                   type: string
- *               interests:
- *                 type: array
- *                 items:
- *                   type: string
- *               expertise:
- *                 type: array
- *                 items:
- *                   type: string
- *               writingStyle:
- *                 type: string
- *                 enum: [professional, casual, technical, witty, academic, storyteller]
- *               createOrganization:
- *                 type: boolean
- *               organizationName:
- *                 type: string
- *     responses:
- *       201:
- *         description: User onboarded successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       400:
- *         description: Validation error
- */
-router.post('/onboard', 
-    upload.single('photo'), 
-    validateRequest(onboardUserSchema), 
-    userController.onboardUser
-);
 
 /**
  * @swagger

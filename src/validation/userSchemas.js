@@ -1,24 +1,5 @@
 import Joi from 'joi';
 
-export const onboardUserSchema = Joi.object({
-    email: Joi.string().email().required(),
-    displayName: Joi.string().required().min(2).max(50),
-    occupation: Joi.string().optional(),
-    bio: Joi.string().max(500).optional(),
-    hobbies: Joi.array().items(Joi.string()).optional(),
-    interests: Joi.array().items(Joi.string()).optional(),
-    expertise: Joi.array().items(Joi.string()).optional(),
-    writingStyle: Joi.string().valid('professional', 'casual', 'technical', 'witty', 'academic', 'storyteller').optional(),
-    socialLinks: Joi.object({
-        twitter: Joi.string().uri().optional().allow(''),
-        linkedin: Joi.string().uri().optional().allow(''),
-        github: Joi.string().uri().optional().allow(''),
-        website: Joi.string().uri().optional().allow('')
-    }).optional(),
-    
-    integrations: Joi.object().unknown(true).optional()
-});
-
 export const updateUserSchema = Joi.object({
     displayName: Joi.string().min(2).max(50),
     occupation: Joi.string().allow(''),

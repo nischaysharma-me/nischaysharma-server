@@ -3,30 +3,6 @@ import * as storageService from '../services/storageService.js';
 import logger from '../utils/logger.js';
 
 /**
- * Onboard a new user
- */
-const onboardUser = async (req, res) => {
-    try {
-        const { uid } = req.user;
-        const profileData = req.body;
-        const file = req.file;
-
-        const newUser = await userService.onboardUser(uid, profileData, file);
-
-        res.status(201).json({
-            success: true,
-            data: newUser
-        });
-
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            error: error.message
-        });
-    }
-};
-
-/**
  * Get current user profile
  */
 const getMe = async (req, res) => {
@@ -34,10 +10,16 @@ const getMe = async (req, res) => {
         const user = await userService.getMe(req.user.uid);
         
         if (!user && req.user) {
+            // Return auth user data as base for new profile
             return res.json({
                 success: true,
                 data: {
-                    ...req.user,
+                    uid: req.user.uid,
+                    email: req.user.email,
+                    displayName: req.user.displayName,
+                    photoURL: req.user.photoURL,
+                    role: 'user',
+                    status: 'active',
                     isOnboarded: false
                 }
             });
@@ -254,7 +236,6 @@ const deleteGalleryAsset = async (req, res) => {
 };
 
 export {
-    onboardUser,
     getMe,
     getPublicAdminProfile,
     getHomeData,
