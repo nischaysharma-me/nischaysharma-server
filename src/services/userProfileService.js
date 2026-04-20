@@ -52,6 +52,15 @@ async function updateUser(uid, updateData) {
         updateData.integrations = currentIntegrations;
     }
 
+    const updatedProfile = await User.findByIdAndUpdate(
+        profile.id,
+        {
+            ...updateData,
+            updatedAt: new Date()
+        },
+        { new: true }
+    );
+
     return updatedProfile;
 }
 
