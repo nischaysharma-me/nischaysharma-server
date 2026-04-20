@@ -1,4 +1,4 @@
-import { User, Organization } from '../models/index.js';
+import { User } from '../models/index.js';
 import logger from '../utils/logger.js';
 import * as storageService from './storageService.js';
 
@@ -28,29 +28,10 @@ async function onboardUser(uid, profileData, file = null) {
         photoURL = upload.url;
     }
 
-    // 2. Handle Organization
-    let organizationId = profileData.organizationId || null;
-
-    if (profileData.createOrganization && profileData.organizationName) {
-        const newOrg = await Organization.create({
-            name: profileData.organizationName,
-            ownerId: uid,
-            type: profileData.organizationType || 'personal',
-            description: `Organization for ${profileData.displayName}`,
-            members: [{
-                userId: uid,
-                role: 'admin',
-                addedAt: new Date()
-            }]
-        });
-        organizationId = newOrg.id;
-    }
-
-    // 3. Create User Profile
+    // 2. Create User Profile
     const newUser = await createUser(uid, {
         ...profileData,
         photoURL,
-        organizationId,
         status: 'active'
     });
 
@@ -89,15 +70,6 @@ async function createUser(uid, profileData) {
  */
 async function getMe(uid) {
     let user = await getUser(uid);
-    
-    // Fix-up: If user is an owner of an organization but it's not linked in their profile
-    if (user && !user.organizationId) {
-        const org = await Organization.findOne({ ownerId: uid });
-        if (org) {
-            user = await updateUser(uid, { organizationId: org.id });
-        }
-    }
-
     return user;
 }
 

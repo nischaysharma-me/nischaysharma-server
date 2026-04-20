@@ -8,14 +8,7 @@ export const onboardUserSchema = Joi.object({
     hobbies: Joi.array().items(Joi.string()).optional(),
     interests: Joi.array().items(Joi.string()).optional(),
     expertise: Joi.array().items(Joi.string()).optional(),
-    writingStyle: Joi.string().valid('professional', 'casual', 'technical', 'witty', 'academic', 'storyteller').default('casual'),
-    
-    // Organization fields
-    createOrganization: Joi.boolean().default(false),
-    organizationId: Joi.string().when('createOrganization', { is: false, then: Joi.optional() }),
-    organizationName: Joi.string().when('createOrganization', { is: true, then: Joi.required() }),
-    organizationType: Joi.string().valid('enterprise', 'startup', 'personal').when('createOrganization', { is: true, then: Joi.optional() }),
-    
+    writingStyle: Joi.string().valid('professional', 'casual', 'technical', 'witty', 'academic', 'storyteller').optional(),
     socialLinks: Joi.object({
         twitter: Joi.string().uri().optional().allow(''),
         linkedin: Joi.string().uri().optional().allow(''),

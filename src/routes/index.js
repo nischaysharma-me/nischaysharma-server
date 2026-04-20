@@ -2,7 +2,6 @@ import express from 'express';
 import userProfileRoutes from './userProfile.js';
 import articleRoutes from './articles.js';
 import jobRoutes from './jobs.js';
-import organizationRoutes from './organizations.js';
 import integrationRoutes from './integrations.js';
 import conversationRoutes from './conversations.js';
 import bookRoutes from './books.js';
@@ -26,9 +25,6 @@ router.use('/articles', articleRoutes);
 
 // Job Routes
 router.use('/jobs', jobRoutes);
-
-// Organization Routes
-router.use('/organizations', organizationRoutes);
 
 // Integration Routes
 router.use('/integrations', integrationRoutes);

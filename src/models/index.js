@@ -1,6 +1,5 @@
 import FirebaseModel from '../utils/firebaseModel.js';
 import userProfileModel from './userProfileModel.js';
-import organizationModel from './organizationModel.js';
 import articleModel from './articleModel.js';
 import reviewModel from './reviewModel.js';
 import tagModel from './tagModel.js';
@@ -14,7 +13,6 @@ import billboardModel from './billboardModel.js';
 
 // Export specific models
 export const User = userProfileModel;
-export const Organization = organizationModel;
 export const Article = articleModel;
 export const Review = reviewModel;
 export const Tag = tagModel;
