@@ -14,15 +14,12 @@ const router = express.Router();
  *   description: User profile management
  */
 
-// Public routes
+// --- 1. Public GET Routes (Static) ---
 router.get('/public/admin', userController.getPublicAdminProfile);
 router.get('/public/home', userController.getHomeData);
 router.get('/', userController.getAllUsers);
-router.get('/:id', userController.getUserById);
 
-// Middleware for authenticated routes
-router.use(isAuthenticated);
-
+// --- 2. Protected GET Routes ---
 /**
  * @swagger
  * /users/me:
@@ -39,7 +36,16 @@ router.use(isAuthenticated);
  *             schema:
  *               $ref: '#/components/schemas/User'
  */
-router.get('/me', userController.getMe);
+router.get('/me', isAuthenticated, userController.getMe);
+
+// --- 3. Public GET Routes (Parameterized) ---
+// Note: Placed after /me to avoid shadowing
+router.get('/:id', userController.getUserById);
+
+
+// --- 4. Protected Mutation Routes ---
+// Apply isAuthenticated to all routes below
+router.use(isAuthenticated);
 
 /**
  * @swagger
