@@ -36,12 +36,25 @@ const userProfileSchema = {
         maxlength: 1000,
         trim: true
     },
+    vision: {
+        type: String,
+        maxlength: 2000,
+        trim: true
+    },
     skills: {
         type: Array,
         default: []
     },
     projects: {
         type: Array, // Array of { title, description, link }
+        default: []
+    },
+    experience: {
+        type: Array, // Array of { title, company, startDate, endDate, description }
+        default: []
+    },
+    education: {
+        type: Array, // Array of { school, degree, fieldOfStudy, startDate, endDate }
         default: []
     },
     expertise: {

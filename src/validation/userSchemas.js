@@ -5,12 +5,31 @@ export const updateUserSchema = Joi.object({
     displayName: Joi.string().min(2).max(50),
     occupation: Joi.string().allow(''),
     bio: Joi.string().max(1000).allow(''),
+    vision: Joi.string().max(2000).allow(''),
     skills: Joi.array().items(Joi.string()).optional(),
     projects: Joi.array().items(
         Joi.object({
             title: Joi.string().required(),
             description: Joi.string().allow(''),
             link: Joi.string().uri().allow('').optional()
+        })
+    ).optional(),
+    experience: Joi.array().items(
+        Joi.object({
+            title: Joi.string().required(),
+            company: Joi.string().required(),
+            startDate: Joi.string().allow(''),
+            endDate: Joi.string().allow(''),
+            description: Joi.string().allow('')
+        })
+    ).optional(),
+    education: Joi.array().items(
+        Joi.object({
+            school: Joi.string().required(),
+            degree: Joi.string().allow(''),
+            fieldOfStudy: Joi.string().allow(''),
+            startDate: Joi.string().allow(''),
+            endDate: Joi.string().allow('')
         })
     ).optional(),
     hobbies: Joi.array().items(Joi.string()),

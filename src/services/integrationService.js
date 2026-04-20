@@ -224,9 +224,10 @@ export async function syncProfileStats(userId, providerName, options = {}) {
             memberId: rawProfile.id,
             accountName: `${rawProfile.firstName} ${rawProfile.lastName}`,
             headline: rawProfile.headline,
-            summary: rawProfile.summary,
-            positions: linkedinUtils.formatPositions(rawProfile.positions),
-            verifiedSkills: linkedinUtils.extractTopSkills(rawProfile.skills),
+            summary: rawProfile.summary || "",
+            positions: linkedinUtils.formatPositions(rawProfile.positions) || [],
+            verifiedSkills: linkedinUtils.extractTopSkills(rawProfile.skills) || [],
+            education: linkedinUtils.formatEducation(rawProfile.education) || [],
             lastSyncedAt: new Date()
         };
     }
