@@ -1,6 +1,7 @@
 import Joi from 'joi';
 
 export const updateUserSchema = Joi.object({
+    email: Joi.string().email().optional(),
     displayName: Joi.string().min(2).max(50),
     occupation: Joi.string().allow(''),
     bio: Joi.string().max(1000).allow(''),
