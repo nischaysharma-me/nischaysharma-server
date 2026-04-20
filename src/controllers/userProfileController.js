@@ -1,6 +1,5 @@
 import * as userService from '../services/userProfileService.js';
 import * as storageService from '../services/storageService.js';
-import Organization from '../models/organizationModel.js';
 import logger from '../utils/logger.js';
 
 /**
