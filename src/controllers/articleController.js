@@ -1,4 +1,6 @@
 import * as articleService from '../services/articleService.js';
+import * as jobService from '../services/jobService.js';
+import logger from '../utils/logger.js';
 
 /**
  * Create a new article
@@ -62,6 +64,43 @@ const updateArticle = async (req, res) => {
             return res.status(403).json({ success: false, error: error.message });
         }
         res.status(400).json({ success: false, error: error.message });
+    }
+};
+
+const regenerateBackgroundImage = async (req, res) => {
+    try {
+        const { id } = req.params; // article ID from URL params
+        const { uid } = req.user;
+        const { prompt } = req.body;
+
+        // Prepare job data
+        const jobData = {
+            articleId: id,
+            prompt: prompt || '' // Use provided prompt or empty string
+        };
+
+        // Get article to verify ownership (optional early check)
+        const article = await articleService.getArticleById(id);
+        if (article.authorId !== uid) {
+            return res.status(403).json({ success: false, error: 'Unauthorized' });
+        }
+
+        // Enqueue the job
+        const job = await jobService.addJob('regenerate-background-image', jobData, uid);
+
+        res.status(202).json({
+            success: true,
+            data: {
+                jobId: job.id,
+                status: 'queued',
+                message: 'Background image regeneration job queued successfully'
+            }
+        });
+    } catch (error) {
+        if (error.message === 'Unauthorized') {
+            return res.status(403).json({ success: false, error: error.message });
+        }
+        res.status(500).json({ success: false, error: error.message });
     }
 };
 
@@ -203,10 +242,12 @@ const getArticleById = async (req, res) => {
     try {
         const { id } = req.params;
         const article = await articleService.getArticleById(id);
+        logger.log('xvf', 'article', article);
 
-        if (article.authorId !== req.user.uid && req.user.role !== 'admin') {
-            return res.status(403).json({ success: false, error: 'Unauthorized' });
-        }
+
+        // if (article.authorId !== req.user.uid && req.user.role !== 'admin') {
+        //     return res.status(403).json({ success: false, error: 'Unauthorized' });
+        // }
 
         res.json({
             success: true,
@@ -219,13 +260,14 @@ const getArticleById = async (req, res) => {
 
 export {
     createArticle,
+    generateArticle,
+    listArticles,
     getArticle,
     getArticleById,
     updateArticle,
-    listArticles,
-    addReview,
-    generateArticle,
-    publishArticle,
     deleteArticle,
-    deleteAllArticles
+    deleteAllArticles,
+    addReview,
+    publishArticle,
+    regenerateBackgroundImage
 };

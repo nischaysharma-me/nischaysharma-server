@@ -17,7 +17,6 @@ async function getUserByToken(token) {
         email: userRecord.email,
         displayName: userRecord.displayName || profile?.displayName,
         photoURL: userRecord.photoURL || profile?.photoURL || null,
-        organizationId: profile?.organizationId || null,
         role: profile?.role || 'user',
         active: profile?.status === 'active', // Map status enum to boolean if needed, or just return status
         preferences: profile?.preferences || { theme: 'dark', notifications: true, language: 'en' },

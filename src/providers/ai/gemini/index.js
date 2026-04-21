@@ -359,12 +359,23 @@ class GeminiAIProvider extends BaseAIProvider {
                 }
             }
 
-            return {
-                success: true,
-                images: images,
-                provider: "gemini",
-                model: model
-            };
+            // Check if we successfully generated images
+            if (images.length > 0) {
+                return {
+                    success: true,
+                    images: images,
+                    provider: "gemini",
+                    model: model
+                };
+            } else {
+                return {
+                    success: false,
+                    images: images,
+                    provider: "gemini",
+                    model: model,
+                    error: "No images generated"
+                };
+            }
         } catch (error) {
             throw new Error(`Gemini Image Generation Error: ${error.message}`);
         }

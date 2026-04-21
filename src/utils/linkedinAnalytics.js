@@ -31,3 +31,20 @@ export function extractTopSkills(skills) {
     // LinkedIn might return complex objects; we simplify to just names
     return skills.map(s => typeof s === 'string' ? s : (s.name || s.skill?.name)).filter(Boolean);
 }
+
+/**
+ * Normalizes LinkedIn education into a clean format
+ * @param {Array} education - Raw education from LinkedIn API
+ * @returns {Array} Formatted education history
+ */
+export function formatEducation(education) {
+    if (!Array.isArray(education)) return [];
+
+    return education.map(edu => ({
+        school: edu.schoolName || edu.school?.name,
+        degree: edu.degreeName,
+        fieldOfStudy: edu.fieldOfStudy,
+        startDate: edu.startedOn ? `${edu.startedOn.month}/${edu.startedOn.year}` : null,
+        endDate: edu.endedOn ? `${edu.endedOn.month}/${edu.endedOn.year}` : null
+    }));
+}

@@ -1,18 +1,15 @@
 import FirebaseAuthProvider from "./firebase/index.js"
-import ApiKeyProvider from "./apiKey.js"
 
-const authProviders = {
-    firebase: FirebaseAuthProvider,
-    apiKey: ApiKeyProvider,
-}
+const AUTH_PROVIDERS = {
+    firebase: FirebaseAuthProvider
+};
 
-export function AuthProvider(providerName) {
-    const ProviderClass = authProviders[providerName]
-
+export function AuthProvider(name) {
+    const ProviderClass = AUTH_PROVIDERS[name];
     if (!ProviderClass) {
-        throw new Error("Auth provider not found")
+        throw new Error(`Auth provider ${name} not found`);
     }
-
-    return new ProviderClass()
+    return new ProviderClass();
 }
 
+export default AuthProvider;

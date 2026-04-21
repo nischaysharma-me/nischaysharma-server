@@ -3,7 +3,7 @@ import * as userController from '../controllers/userProfileController.js';
 import { isAuthenticated } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
 import { validateRequest } from '../middleware/validateRequest.js';
-import { onboardUserSchema, updateUserSchema } from '../validation/userSchemas.js';
+import { updateUserSchema } from '../validation/userSchemas.js';
 
 const router = express.Router();
 
@@ -14,75 +14,12 @@ const router = express.Router();
  *   description: User profile management
  */
 
-// Public routes
+// --- 1. Public GET Routes (Static) ---
 router.get('/public/admin', userController.getPublicAdminProfile);
+router.get('/public/home', userController.getHomeData);
+router.get('/', userController.getAllUsers);
 
-// Middleware
-router.use(isAuthenticated);
-
-/**
- * @swagger
- * /users/onboard:
- *   post:
- *     summary: Onboard a new user
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               photo:
- *                 type: string
- *                 format: binary
- *                 description: Profile picture
- *               email:
- *                 type: string
- *                 format: email
- *               displayName:
- *                 type: string
- *               occupation:
- *                 type: string
- *               bio:
- *                 type: string
- *               hobbies:
- *                 type: array
- *                 items:
- *                   type: string
- *               interests:
- *                 type: array
- *                 items:
- *                   type: string
- *               expertise:
- *                 type: array
- *                 items:
- *                   type: string
- *               writingStyle:
- *                 type: string
- *                 enum: [professional, casual, technical, witty, academic, storyteller]
- *               createOrganization:
- *                 type: boolean
- *               organizationName:
- *                 type: string
- *     responses:
- *       201:
- *         description: User onboarded successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       400:
- *         description: Validation error
- */
-router.post('/onboard', 
-    upload.single('photo'), 
-    validateRequest(onboardUserSchema), 
-    userController.onboardUser
-);
-
+// --- 2. Protected GET Routes ---
 /**
  * @swagger
  * /users/me:
@@ -99,7 +36,19 @@ router.post('/onboard',
  *             schema:
  *               $ref: '#/components/schemas/User'
  */
-router.get('/me', userController.getMe);
+router.get('/me', isAuthenticated, userController.getMe);
+
+// --- 3. Public GET Routes (Parameterized) ---
+// Note: Placed after /me to avoid shadowing
+router.get('/:id', userController.getUserById);
+
+
+// --- 4. Protected Mutation Routes ---
+// Apply isAuthenticated to all routes below
+router.use(isAuthenticated);
+
+// Generic asset upload
+router.post('/assets', upload.single('file'), userController.uploadAsset);
 
 /**
  * @swagger
@@ -218,28 +167,6 @@ router.delete('/me/gallery', userController.deleteGalleryAsset);
 
 /**
  * @swagger
- * /users/{id}:
- *   get:
- *     summary: Get user by ID
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: User profile found
- *       404:
- *         description: User not found
- */
-router.get('/:id', userController.getUserById);
-
-/**
- * @swagger
  * /users/{id}/deactivate:
  *   patch:
  *     summary: Deactivate user account (Soft delete)
@@ -257,29 +184,6 @@ router.get('/:id', userController.getUserById);
  *         description: User deactivated
  */
 router.patch('/:id/deactivate', userController.deactivateUser);
-
-/**
- * @swagger
- * /users:
- *   get:
- *     summary: List all users (Admin)
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: role
- *         schema:
- *           type: string
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: List of users
- */
-router.get('/', userController.getAllUsers);
 
 /**
  * @swagger

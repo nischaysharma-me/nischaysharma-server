@@ -1,103 +1,75 @@
-import { User, Organization } from '../models/index.js';
+import { User, Article, Book } from '../models/index.js';
 import logger from '../utils/logger.js';
 import * as storageService from './storageService.js';
 
 /**
- * Onboard a new user with optional organization creation and file upload.
+ * Update user profile by UID (Creates if doesn't exist)
  * @param {string} uid 
- * @param {Object} profileData 
- * @param {Object} file - Buffer and mimetype from request
- * @returns {Promise<Object>} Created user
+ * @param {Object} updateData 
  */
-async function onboardUser(uid, profileData, file = null) {
-    const existingProfile = await User.findOne({ uid });
-    if (existingProfile) {
-        throw new Error('Profile already exists for this user');
-    }
-
-    // 1. Handle Profile Picture Upload
-    let photoURL = profileData.photoURL || null;
-    if (file) {
-        const upload = await storageService.uploadUserAsset(
-            uid,
-            file.buffer,
-            file.mimetype,
-            'profile',
-            'avatar'
-        );
-        photoURL = upload.url;
-    }
-
-    // 2. Handle Organization
-    let organizationId = profileData.organizationId || null;
-
-    if (profileData.createOrganization && profileData.organizationName) {
-        const newOrg = await Organization.create({
-            name: profileData.organizationName,
-            ownerId: uid,
-            type: profileData.organizationType || 'personal',
-            description: `Organization for ${profileData.displayName}`,
-            members: [{
-                userId: uid,
-                role: 'admin',
-                addedAt: new Date()
-            }]
-        });
-        organizationId = newOrg.id;
-    }
-
-    // 3. Create User Profile
-    const newUser = await createUser(uid, {
-        ...profileData,
-        photoURL,
-        organizationId,
-        status: 'active'
-    });
-
-    return newUser;
-}
-
-/**
- * Create a new user profile
- * @param {string} uid 
- * @param {Object} profileData 
- * @returns {Promise<Object>} Created user
- */
-async function createUser(uid, profileData) {
-    const existingProfile = await User.findOne({ uid });
+async function updateUser(uid, updateData) {
+    let profile = await User.findOne({ uid });
     
-    if (existingProfile) {
-        throw new Error('Profile already exists for this user');
+    if (profile && profile.status === 'deactivated') {
+        throw new Error('Profile is deactivated');
     }
 
-    const profile = await User.create({
-        uid,
-        ...profileData,
-        status: profileData.status || 'active',
-        role: profileData.role || 'user',
-        lastActiveAt: new Date()
-    });
+    // 1. Prevent updating sensitive system fields directly
+    delete updateData.uid;
+    // Only admins can update role/status via this method if we wanted, 
+    // but for now, let's keep it restricted.
+    delete updateData.role;
+    delete updateData.status;
 
-    logger.debug('UserService: profile created', profile);
+    // 2. If profile doesn't exist, create it (Onboarding merge)
+    if (!profile) {
+        logger.info(`UserService: Creating new profile for user ${uid}`);
+        profile = await User.create({
+            uid,
+            ...updateData,
+            role: 'user',
+            status: 'active',
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+        return profile;
+    }
 
-    return profile;
+    // 3. Handle Integrations Merge (Prevent overwriting existing keys/tokens)
+    if (updateData.integrations) {
+        logger.info(`UserService: Merging integrations for user ${uid}`, { incoming: updateData.integrations });
+        const currentIntegrations = profile.integrations || {};
+        const newIntegrations = updateData.integrations;
+        
+        Object.keys(newIntegrations).forEach(provider => {
+            currentIntegrations[provider] = {
+                ...(currentIntegrations[provider] || {}),
+                ...(newIntegrations[provider] || {}),
+                updatedAt: new Date()
+            };
+        });
+        
+        updateData.integrations = currentIntegrations;
+    }
+
+    const updatedProfile = await User.findByIdAndUpdate(
+        profile.id,
+        {
+            ...updateData,
+            updatedAt: new Date()
+        },
+        { new: true }
+    );
+
+    return updatedProfile;
 }
 
 /**
- * Get current user profile with organization fixup
+ * Get current user profile
  * @param {string} uid 
  */
 async function getMe(uid) {
     let user = await getUser(uid);
-    
-    // Fix-up: If user is an owner of an organization but it's not linked in their profile
-    if (user && !user.organizationId) {
-        const org = await Organization.findOne({ ownerId: uid });
-        if (org) {
-            user = await updateUser(uid, { organizationId: org.id });
-        }
-    }
-
     return user;
 }
 
@@ -127,54 +99,6 @@ async function getUserById(id) {
     }
 
     return profile;
-}
-
-/**
- * Update user profile by UID
- * @param {string} uid 
- * @param {Object} updateData 
- */
-async function updateUser(uid, updateData) {
-    const profile = await User.findOne({ uid });
-    
-    if (!profile || profile.status === 'deactivated') {
-        throw new Error('Profile not found');
-    }
-
-    // 1. Prevent updating sensitive system fields directly
-    delete updateData.uid;
-    delete updateData.role;
-    delete updateData.status;
-
-    // 2. Handle Integrations Merge (Prevent overwriting existing keys/tokens)
-    if (updateData.integrations) {
-        logger.info(`UserService: Merging integrations for user ${uid}`, { incoming: updateData.integrations });
-        const currentIntegrations = profile.integrations || {};
-        const newIntegrations = updateData.integrations;
-        
-        // Shallow merge each provider
-        Object.keys(newIntegrations).forEach(provider => {
-            currentIntegrations[provider] = {
-                ...(currentIntegrations[provider] || {}),
-                ...(newIntegrations[provider] || {}),
-                updatedAt: new Date()
-            };
-        });
-        
-        updateData.integrations = currentIntegrations;
-        logger.info(`UserService: Merge complete for ${uid}`, { result: updateData.integrations });
-    }
-
-    const updatedProfile = await User.findByIdAndUpdate(
-        profile.id,
-        {
-            ...updateData,
-            updatedAt: new Date()
-        },
-        { new: true }
-    );
-
-    return updatedProfile;
 }
 
 /**
@@ -401,10 +325,73 @@ async function deleteGalleryAsset(uid, assetUrl) {
     return await updateUser(uid, { gallery: updatedGallery });
 }
 
+/**
+ * Populate featured items with full data (Article/Book)
+ * @param {Object} user 
+ */
+async function populateFeaturedItems(user) {
+    if (!user || !user.featured || !Array.isArray(user.featured)) {
+        return [];
+    }
+
+    const populatedItems = await Promise.all(user.featured.map(async (item) => {
+        try {
+            let data = null;
+            if (item.type === 'article') {
+                data = await Article.findById(item.id);
+            } else if (item.type === 'book') {
+                data = await Book.findById(item.id);
+            }
+            
+            if (data) {
+                return {
+                    ...item,
+                    data
+                };
+            }
+            return null;
+        } catch (error) {
+            logger.warn(`Failed to populate featured item: ${item.id}`, error);
+            return null;
+        }
+    }));
+
+    return populatedItems.filter(item => item !== null);
+}
+
+/**
+ * Get consolidated data for the public home page
+ */
+async function getHomeData() {
+    const admin = await getPrimaryAdmin();
+    if (!admin) {
+        return {
+            profile: null,
+            featured: []
+        };
+    }
+
+    let featured = await populateFeaturedItems(admin);
+
+    // Fallback: If no featured items, get latest published articles
+    if (featured.length === 0) {
+        const latestArticles = await Article.find({ status: 'published' }, { limit: 10, sort: { createdAt: -1 } });
+        featured = latestArticles.map(article => ({
+            id: article.id,
+            type: 'article',
+            title: article.title,
+            data: article
+        }));
+    }
+
+    return {
+        profile: admin,
+        featured
+    };
+}
+
 export {
-    onboardUser,
     getMe,
-    createUser,
     getUser,
     getUserById,
     updateUser,
@@ -418,5 +405,7 @@ export {
     updateProfilePicture,
     updateCoverPhoto,
     addGalleryAsset,
-    deleteGalleryAsset
+    deleteGalleryAsset,
+    populateFeaturedItems,
+    getHomeData
 };

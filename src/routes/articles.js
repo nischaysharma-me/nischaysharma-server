@@ -4,7 +4,7 @@ import * as templateController from '../controllers/articleTemplateController.js
 import { isAuthenticated, optionalAuth } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validateRequest.js';
 import { enqueueJob } from '../middleware/jobMiddleware.js';
-import { createArticleSchema, updateArticleSchema, addReviewSchema, generateArticleSchema, generateTemplateSchema } from '../validation/articleSchemas.js';
+import { createArticleSchema, updateArticleSchema, addReviewSchema, generateArticleSchema, generateTemplateSchema, regenerateBackgroundImageSchema } from '../validation/articleSchemas.js';
 
 const router = express.Router();
 
@@ -237,7 +237,6 @@ router.delete('/',
 );
 
 router.get('/fetch/:id',
-    isAuthenticated,
     articleController.getArticleById
 );
 
@@ -369,6 +368,43 @@ router.post('/:id/reviews',
 router.post('/:id/publish',
     isAuthenticated,
     articleController.publishArticle
+);
+
+/**
+ * @swagger
+ * /articles/{id}/regenerate-background-image:
+ *   post:
+ *     summary: Regenerate background image for an existing article (Async Job)
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Article ID
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               prompt:
+ *                 type: string
+ *                 description: Optional custom prompt for image generation
+ *     responses:
+ *       202:
+ *         description: Job accepted
+ *       403:
+ *         description: Unauthorized
+ *       404:
+ *         description: Article not found
+ */
+router.post('/:id/regenerate-background-image',
+    isAuthenticated,
+    articleController.regenerateBackgroundImage
 );
 
 export default router;

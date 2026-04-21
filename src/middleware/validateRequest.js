@@ -16,10 +16,6 @@ export const validateRequest = (schema) => {
                     }
                 }
             });
-            
-            // Handle booleans sent as strings
-            if (req.body.createOrganization === 'true') req.body.createOrganization = true;
-            if (req.body.createOrganization === 'false') req.body.createOrganization = false;
         }
 
         const { error, value } = schema.validate(req.body, { 

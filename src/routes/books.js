@@ -11,22 +11,26 @@ const router = express.Router();
  *   description: Threaded Book and Page management
  */
 
-// Apply authentication to all book routes
-router.use(isAuthenticated);
-
 // --- Book Routes ---
+
+// Get all books (Public for showcase)
+router.get('/', bookController.getUserBooks);
+
+// Get a specific book (Public)
+router.get('/:bookId', bookController.getBook);
+
+// Get a book with full hierarchy (Public)
+router.get('/:bookId/full', bookController.getFullBook);
+
+// Get all pages for a book (Public)
+router.get('/:bookId/pages', bookController.getBookPages);
+
+
+// Mutations require authentication
+router.use(isAuthenticated);
 
 // Create a new book
 router.post('/', bookController.createBook);
-
-// Get all books for the user
-router.get('/', bookController.getUserBooks);
-
-// Get a specific book
-router.get('/:bookId', bookController.getBook);
-
-// Get a book with full hierarchy (populated chapters and pages)
-router.get('/:bookId/full', bookController.getFullBook);
 
 // Update book metadata
 router.patch('/:bookId', bookController.updateBook);
@@ -35,9 +39,6 @@ router.patch('/:bookId', bookController.updateBook);
 router.delete('/:bookId', bookController.deleteBook);
 
 // --- Page Routes (Scoped within a Book) ---
-
-// Get all pages for a book (ordered)
-router.get('/:bookId/pages', bookController.getBookPages);
 
 // Update a specific page
 router.patch('/:bookId/pages/:pageId', bookController.updatePage);
