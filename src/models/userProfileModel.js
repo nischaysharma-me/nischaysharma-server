@@ -46,15 +46,15 @@ const userProfileSchema = {
         default: []
     },
     projects: {
-        type: Array, // Array of { title, description, link }
+        type: Array, // Array of { title, description, link, image }
         default: []
     },
     experience: {
-        type: Array, // Array of { title, company, startDate, endDate, description }
+        type: Array, // Array of { title, company, startDate, endDate, description, logo }
         default: []
     },
     education: {
-        type: Array, // Array of { school, degree, fieldOfStudy, startDate, endDate }
+        type: Array, // Array of { school, degree, fieldOfStudy, startDate, endDate, logo }
         default: []
     },
     expertise: {

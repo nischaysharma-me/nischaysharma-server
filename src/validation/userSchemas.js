@@ -11,7 +11,8 @@ export const updateUserSchema = Joi.object({
         Joi.object({
             title: Joi.string().required(),
             description: Joi.string().allow(''),
-            link: Joi.string().uri().allow('').optional()
+            link: Joi.string().uri().allow('').optional(),
+            image: Joi.string().allow('').optional()
         })
     ).optional(),
     experience: Joi.array().items(
@@ -20,7 +21,8 @@ export const updateUserSchema = Joi.object({
             company: Joi.string().required(),
             startDate: Joi.string().allow(''),
             endDate: Joi.string().allow(''),
-            description: Joi.string().allow('')
+            description: Joi.string().allow(''),
+            logo: Joi.string().allow('').optional()
         })
     ).optional(),
     education: Joi.array().items(
@@ -29,7 +31,8 @@ export const updateUserSchema = Joi.object({
             degree: Joi.string().allow(''),
             fieldOfStudy: Joi.string().allow(''),
             startDate: Joi.string().allow(''),
-            endDate: Joi.string().allow('')
+            endDate: Joi.string().allow(''),
+            logo: Joi.string().allow('').optional()
         })
     ).optional(),
     hobbies: Joi.array().items(Joi.string()),

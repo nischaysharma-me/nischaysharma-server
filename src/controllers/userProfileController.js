@@ -237,6 +237,28 @@ const deleteGalleryAsset = async (req, res) => {
     }
 };
 
+/**
+ * Generic Asset Upload (returns URL)
+ */
+const uploadAsset = async (req, res) => {
+    try {
+        const { uid } = req.user;
+        const { folder = 'general' } = req.query;
+        if (!req.file) throw new Error('No file provided');
+
+        const uploadResult = await storageService.uploadUserAsset(
+            uid,
+            req.file.buffer,
+            req.file.mimetype,
+            folder
+        );
+
+        res.json({ success: true, url: uploadResult.url });
+    } catch (error) {
+        res.status(400).json({ success: false, error: error.message });
+    }
+};
+
 export {
     getMe,
     getPublicAdminProfile,
@@ -250,5 +272,6 @@ export {
     updateProfilePicture,
     updateCoverPhoto,
     addGalleryAsset,
-    deleteGalleryAsset
+    deleteGalleryAsset,
+    uploadAsset
 };

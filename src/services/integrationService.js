@@ -5,6 +5,7 @@ import { INTEGRATIONS_CONFIG } from '../config/integrations.js';
 import * as githubUtils from '../utils/githubAnalytics.js';
 import * as linkedinUtils from '../utils/linkedinAnalytics.js';
 import axios from 'axios';
+import { raw } from 'express';
 
 /**
  * Get the integration config for a user, combining defaults with user overrides
@@ -220,9 +221,10 @@ export async function syncProfileStats(userId, providerName, options = {}) {
     } else if (providerName === 'linkedin') {
         // LinkedIn might use positions sync or other profile data
         const rawProfile = await provider.sync({ action: 'sync_profile' });
+        logger.log('xvf', rawProfile)
         processedData = {
             memberId: rawProfile.id,
-            accountName: `${rawProfile.firstName} ${rawProfile.lastName}`,
+            accountName: `${rawProfile.given_name} ${rawProfile.family_name}`,
             headline: rawProfile.headline,
             summary: rawProfile.summary || "",
             positions: linkedinUtils.formatPositions(rawProfile.positions) || [],

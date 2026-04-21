@@ -47,6 +47,9 @@ router.get('/:id', userController.getUserById);
 // Apply isAuthenticated to all routes below
 router.use(isAuthenticated);
 
+// Generic asset upload
+router.post('/assets', upload.single('file'), userController.uploadAsset);
+
 /**
  * @swagger
  * /users/me:
