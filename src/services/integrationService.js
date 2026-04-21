@@ -221,7 +221,7 @@ export async function syncProfileStats(userId, providerName, options = {}) {
     } else if (providerName === 'linkedin') {
         // LinkedIn might use positions sync or other profile data
         const rawProfile = await provider.sync({ action: 'sync_profile' });
-        logger.log('xvf', rawProfile)
+        // logger.log('xvf', rawProfile)
         processedData = {
             memberId: rawProfile.id,
             accountName: `${rawProfile.given_name} ${rawProfile.family_name}`,

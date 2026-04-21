@@ -7,6 +7,57 @@ import { generateStructurePrompt, generateContentPrompt } from '../prompts/artic
 import { minifyHTML } from '../utils/htmlMinifier.js';
 
 /**
+ * Generate a background image for an article
+ * @param {string} authorId - The ID of the article author
+ * @param {string} topic - The topic/title of the article
+ * @param {string|null} templateId - Optional template ID
+ * @returns {Promise<string>} The URL of the generated background image
+ */
+async function generateBackgroundImage(authorId, topic, templateId = null) {
+    let backgroundImageUrl = '';
+    try {
+        const bgPrompt = templateId 
+            ? `A beautiful cover image for an article about ${topic} based on a template. Make it look like a high-quality cover image with NO TEXT or words.` 
+            : `A high-quality, professional cover image for an article about ${topic}. Ensure there is NO TEXT, typography, or words anywhere in the image.`;
+        
+        const bgResult = await aiService.generateImage(bgPrompt, {
+            aspectRatio: '16:9',
+            imageSize: '2K'
+        });
+        
+        if (bgResult.success && bgResult.images.length > 0) {
+            const imgPart = bgResult.images[0];
+            let buffer, mimeType;
+
+            if (typeof imgPart === 'string') {
+                const response = await fetch(imgPart);
+                const arrayBuffer = await response.arrayBuffer();
+                buffer = Buffer.from(arrayBuffer);
+                mimeType = response.headers.get('content-type') || 'image/png';
+            } else if (imgPart.inlineData) {
+                buffer = Buffer.from(imgPart.inlineData.data, 'base64');
+                mimeType = imgPart.inlineData.mimeType;
+            }
+
+            if (buffer) {
+                const uploadResult = await storageService.uploadUserAsset(
+                    authorId,
+                    buffer,
+                    mimeType,
+                    'background_images'
+                );
+                
+                backgroundImageUrl = uploadResult.url;
+            }
+        }
+    } catch (err) {
+        logger.warn(`Failed to generate/upload background image for topic "${topic}":`, err);
+    }
+    
+    return backgroundImageUrl;
+}
+
+/**
  * Publish an article
  * @param {string} id
  * @param {string} authorId
@@ -138,45 +189,7 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
     }
 
     // 2.5 Generate Background Image
-    let backgroundImageUrl = '';
-    try {
-        const bgPrompt = templateId 
-            ? `A beautiful cover image for an article about ${topic} based on a template. Make it look like a high-quality cover image with NO TEXT or words.` 
-            : `A high-quality, professional cover image for an article about ${topic}. Ensure there is NO TEXT, typography, or words anywhere in the image.`;
-        
-        const bgResult = await aiService.generateImage(bgPrompt, {
-            aspectRatio: '16:9',
-            imageSize: '2K'
-        });
-        
-        if (bgResult.success && bgResult.images.length > 0) {
-            const imgPart = bgResult.images[0];
-            let buffer, mimeType;
-
-            if (typeof imgPart === 'string') {
-                const response = await fetch(imgPart);
-                const arrayBuffer = await response.arrayBuffer();
-                buffer = Buffer.from(arrayBuffer);
-                mimeType = response.headers.get('content-type') || 'image/png';
-            } else if (imgPart.inlineData) {
-                buffer = Buffer.from(imgPart.inlineData.data, 'base64');
-                mimeType = imgPart.inlineData.mimeType;
-            }
-
-            if (buffer) {
-                const uploadResult = await storageService.uploadUserAsset(
-                    authorId,
-                    buffer,
-                    mimeType,
-                    'background_images'
-                );
-                
-                backgroundImageUrl = uploadResult.url;
-            }
-        }
-    } catch (err) {
-        logger.warn(`Failed to generate/upload background image for topic "${topic}":`, err);
-    }
+    const backgroundImageUrl = await generateBackgroundImage(authorId, topic, templateId);
 
     // 3. Generate Full Content
     // Combine custom instructions with template instructions
@@ -483,15 +496,13 @@ async function listArticles(filters = {}, options = {}) {
 }
 
 export {
+    generateArticleContent,
     createArticle,
+    addReview,
     getArticleBySlug,
+    checkAccess,
     getArticleById,
     updateArticle,
-    listArticles,
-    checkAccess,
-    addReview,
-    generateArticleContent,
-    publishArticle,
     deleteArticle,
-    deleteAllArticles
+    generateBackgroundImage
 };

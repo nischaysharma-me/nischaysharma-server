@@ -7,9 +7,9 @@ import logger from '../utils/logger.js';
  */
 const getMe = async (req, res) => {
     try {
-        logger.info('xvf', req.user);
+        // logger.info('xvf', req.user);
         const user = await userService.getMe(req.user.uid);
-        logger.info('xvf', user)
+        // logger.info('xvf', user)
         
         if (!user && req.user) {
             // Return auth user data as base for new profile

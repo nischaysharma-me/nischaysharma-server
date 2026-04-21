@@ -52,3 +52,7 @@ export const generateTemplateSchema = Joi.object({
     description: Joi.string().required().min(10).max(1000),
     category: Joi.string().valid(...ARTICLE_TEMPLATE_CATEGORY_LIST).default('blog-post')
 });
+
+export const regenerateBackgroundImageSchema = Joi.object({
+    prompt: Joi.string().max(1000).allow('')
+});
