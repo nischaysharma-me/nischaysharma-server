@@ -28,6 +28,8 @@ export async function createBillboard(data, file = null) {
 }
 
 export async function updateBillboard(id, data, file = null) {
+    logger.info(`BillboardService: Updating billboard ${id}`, { hasFile: !!file });
+    
     let imageUrl = data.imageUrl;
 
     if (file) {
@@ -49,9 +51,14 @@ export async function updateBillboard(id, data, file = null) {
         payload.imageUrl = imageUrl;
     }
 
+    // Ensure we don't try to update ID
+    delete payload.id;
+    delete payload._id;
+
     const updated = await Billboard.findByIdAndUpdate(id, payload, { new: true });
     if (!updated) throw new Error('Billboard not found');
-    logger.info(`Billboard updated: ${id}`);
+    
+    logger.info(`Billboard updated successfully: ${id}`);
     return updated;
 }
 
@@ -72,6 +79,8 @@ export async function listBillboards(filters = {}) {
 }
 
 export async function generateImageForBillboard(id, prompt) {
+    logger.info(`BillboardService: Generating image for billboard ${id}`);
+    
     const billboard = await Billboard.findById(id);
     if (!billboard) throw new Error('Billboard not found');
 
@@ -81,35 +90,53 @@ export async function generateImageForBillboard(id, prompt) {
     if (billboard.layoutType === 'middle') aspectRatio = '4:3';
     else if (billboard.layoutType === 'mini') aspectRatio = '1:1';
 
-    logger.info(`Generating image for billboard ${id} with prompt: ${imagePrompt}`);
+    logger.info(`Generating image with prompt: ${imagePrompt} and aspectRatio: ${aspectRatio}`);
 
     const imageResult = await aiService.generateImage(imagePrompt, { aspectRatio });
-    if (!imageResult.success || imageResult.images.length === 0) {
-        throw new Error('Failed to generate image');
+    
+    if (!imageResult.success || !imageResult.images || imageResult.images.length === 0) {
+        logger.error(`AI Image Generation failed: ${imageResult.error || 'No images returned'}`);
+        throw new Error(`Failed to generate image: ${imageResult.error || 'AI service returned no results'}`);
     }
 
     const imgPart = imageResult.images[0];
     let buffer, mimeType;
 
-    if (typeof imgPart === 'string') {
-        const response = await fetch(imgPart);
-        const arrayBuffer = await response.arrayBuffer();
-        buffer = Buffer.from(arrayBuffer);
-        mimeType = response.headers.get('content-type') || 'image/png';
-    } else if (imgPart.inlineData) {
-        buffer = Buffer.from(imgPart.inlineData.data, 'base64');
-        mimeType = imgPart.inlineData.mimeType;
+    try {
+        if (typeof imgPart === 'string') {
+            const response = await fetch(imgPart);
+            const arrayBuffer = await response.arrayBuffer();
+            buffer = Buffer.from(arrayBuffer);
+            mimeType = response.headers.get('content-type') || 'image/png';
+        } else if (imgPart.inlineData) {
+            buffer = Buffer.from(imgPart.inlineData.data, 'base64');
+            mimeType = imgPart.inlineData.mimeType;
+        }
+
+        if (!buffer) throw new Error('Could not process generated image buffer');
+
+        const uploadResult = await storageService.uploadUserAsset(
+            'system',
+            buffer,
+            mimeType,
+            'billboard_images'
+        );
+
+        const updated = await updateBillboard(id, { imageUrl: uploadResult.url });
+        logger.info(`Billboard image updated via AI: ${id}`);
+        return updated;
+    } catch (err) {
+        logger.error(`Error processing/uploading generated image: ${err.message}`);
+        throw new Error(`Error processing generated image: ${err.message}`);
     }
-
-    if (!buffer) throw new Error('Could not process generated image buffer');
-
-    const uploadResult = await storageService.uploadUserAsset(
-        'system',
-        buffer,
-        mimeType,
-        'billboard_images'
-    );
-
-    const updated = await updateBillboard(id, { imageUrl: uploadResult.url });
-    return updated;
 }
+
+const billboardService = {
+    createBillboard,
+    updateBillboard,
+    deleteBillboard,
+    listBillboards,
+    generateImageForBillboard
+};
+
+export default billboardService;
