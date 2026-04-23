@@ -1,16 +1,16 @@
-import * as articleService from '../services/articleService.js';
+import articleSvc from '../services/articleService.js';
 import * as jobService from '../services/jobService.js';
 import logger from '../utils/logger.js';
 
 /**
  * Create a new article
  */
-const createArticle = async (req, res) => {
+export async function createArticle(req, res) {
     try {
         const { uid } = req.user;
         const articleData = req.body;
 
-        const article = await articleService.createArticle(uid, articleData);
+        const article = await articleSvc.createArticle(uid, articleData);
 
         res.status(201).json({
             success: true,
@@ -19,18 +19,17 @@ const createArticle = async (req, res) => {
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });
     }
-};
+}
 
 /**
  * Get article by slug
- * Public route (optional auth)
  */
-const getArticle = async (req, res) => {
+export async function getArticle(req, res) {
     try {
         const { slug } = req.params;
         const userId = req.user?.uid || null;
 
-        const article = await articleService.getArticleBySlug(slug, userId);
+        const article = await articleSvc.getArticleBySlug(slug, userId);
 
         res.json({
             success: true,
@@ -42,18 +41,18 @@ const getArticle = async (req, res) => {
         }
         res.status(404).json({ success: false, error: error.message });
     }
-};
+}
 
 /**
  * Update article
  */
-const updateArticle = async (req, res) => {
+export async function updateArticle(req, res) {
     try {
         const { id } = req.params;
         const { uid } = req.user;
         const updates = req.body;
 
-        const updatedArticle = await articleService.updateArticle(id, uid, updates);
+        const updatedArticle = await articleSvc.updateArticle(id, uid, updates);
 
         res.json({
             success: true,
@@ -65,27 +64,27 @@ const updateArticle = async (req, res) => {
         }
         res.status(400).json({ success: false, error: error.message });
     }
-};
+}
 
-const regenerateBackgroundImage = async (req, res) => {
+/**
+ * Regenerate background image
+ */
+export async function regenerateBackgroundImage(req, res) {
     try {
-        const { id } = req.params; // article ID from URL params
+        const { id } = req.params;
         const { uid } = req.user;
         const { prompt } = req.body;
 
-        // Prepare job data
         const jobData = {
             articleId: id,
-            prompt: prompt || '' // Use provided prompt or empty string
+            prompt: prompt || ''
         };
 
-        // Get article to verify ownership (optional early check)
-        const article = await articleService.getArticleById(id);
+        const article = await articleSvc.getArticleById(id);
         if (article.authorId !== uid) {
             return res.status(403).json({ success: false, error: 'Unauthorized' });
         }
 
-        // Enqueue the job
         const job = await jobService.addJob('regenerate-background-image', jobData, uid);
 
         res.status(202).json({
@@ -102,12 +101,12 @@ const regenerateBackgroundImage = async (req, res) => {
         }
         res.status(500).json({ success: false, error: error.message });
     }
-};
+}
 
 /**
  * List articles
  */
-const listArticles = async (req, res) => {
+export async function listArticles(req, res) {
     try {
         const { limit, skip, sort, ...filters } = req.query;
         
@@ -117,7 +116,11 @@ const listArticles = async (req, res) => {
             sort: sort || { createdAt: -1 }
         };
 
-        const articles = await articleService.listArticles(filters, options);
+        if (typeof articleSvc.listArticles !== 'function') {
+            throw new Error(`articleSvc.listArticles is not a function. Available keys: ${Object.keys(articleSvc).join(', ')}`);
+        }
+
+        const articles = await articleSvc.listArticles(filters, options);
 
         res.json({
             success: true,
@@ -126,18 +129,18 @@ const listArticles = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
-};
+}
 
 /**
  * Add a review
  */
-const addReview = async (req, res) => {
+export async function addReview(req, res) {
     try {
-        const { id } = req.params; // Article ID
+        const { id } = req.params;
         const { uid } = req.user;
         const reviewData = req.body;
 
-        const review = await articleService.addReview(id, uid, reviewData);
+        const review = await articleSvc.addReview(id, uid, reviewData);
 
         res.status(201).json({
             success: true,
@@ -146,12 +149,12 @@ const addReview = async (req, res) => {
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });
     }
-};
+}
 
 /**
  * Generate an article using AI
  */
-const generateArticle = async (req, res) => {
+export async function generateArticle(req, res) {
     try {
         const { uid } = req.user;
         const { topic, depth, instructions, templateId } = req.body;
@@ -160,7 +163,7 @@ const generateArticle = async (req, res) => {
             return res.status(400).json({ success: false, error: 'Topic is required' });
         }
 
-        const article = await articleService.generateArticleContent(uid, topic, depth, instructions, templateId);
+        const article = await articleSvc.generateArticleContent(uid, topic, depth, instructions, templateId);
 
         res.status(201).json({
             success: true,
@@ -169,61 +172,54 @@ const generateArticle = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
-};
+}
 
 /**
- * Publish article to docs
+ * Publish article
  */
-const publishArticle = async (req, res) => {
+export async function publishArticle(req, res) {
     try {
         const { id } = req.params;
         const { uid } = req.user;
 
-        const article = await articleService.publishArticle(id, uid);
+        const article = await articleSvc.publishArticle(id, uid);
 
         res.json({
             success: true,
             data: article,
-            message: 'Article published to documentation'
+            message: 'Article published successfully'
         });
     } catch (error) {
-        if (error.message === 'Unauthorized') {
-            return res.status(403).json({ success: false, error: error.message });
-        }
         res.status(400).json({ success: false, error: error.message });
     }
-};
+}
 
 /**
  * Delete article
  */
-const deleteArticle = async (req, res) => {
+export async function deleteArticle(req, res) {
     try {
         const { id } = req.params;
         const { uid } = req.user;
 
-        await articleService.deleteArticle(id, uid);
+        await articleSvc.deleteArticle(id, uid);
 
         res.json({
             success: true,
             message: 'Article deleted successfully'
         });
     } catch (error) {
-        if (error.message === 'Unauthorized') {
-            return res.status(403).json({ success: false, error: error.message });
-        }
         res.status(400).json({ success: false, error: error.message });
     }
-};
+}
 
 /**
  * Delete all articles
  */
-const deleteAllArticles = async (req, res) => {
+export async function deleteAllArticles(req, res) {
     try {
         const { uid } = req.user;
-
-        const deletedCount = await articleService.deleteAllArticles(uid);
+        const deletedCount = await articleSvc.deleteAllArticles(uid);
 
         res.json({
             success: true,
@@ -232,22 +228,15 @@ const deleteAllArticles = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
-};
+}
 
 /**
  * Get article by ID
- * Private route (requires auth)
  */
-const getArticleById = async (req, res) => {
+export async function getArticleById(req, res) {
     try {
         const { id } = req.params;
-        const article = await articleService.getArticleById(id);
-        logger.log('xvf', 'article', article);
-
-
-        // if (article.authorId !== req.user.uid && req.user.role !== 'admin') {
-        //     return res.status(403).json({ success: false, error: 'Unauthorized' });
-        // }
+        const article = await articleSvc.getArticleById(id);
 
         res.json({
             success: true,
@@ -256,18 +245,4 @@ const getArticleById = async (req, res) => {
     } catch (error) {
         res.status(404).json({ success: false, error: error.message });
     }
-};
-
-export {
-    createArticle,
-    generateArticle,
-    listArticles,
-    getArticle,
-    getArticleById,
-    updateArticle,
-    deleteArticle,
-    deleteAllArticles,
-    addReview,
-    publishArticle,
-    regenerateBackgroundImage
-};
+}
