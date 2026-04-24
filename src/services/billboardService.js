@@ -100,6 +100,7 @@ export async function generateImageForBillboard(id, prompt) {
 
     try {
         if (typeof imgPart === 'string') {
+            logger.info(`BillboardService: Image returned as URL, fetching...`, { url: imgPart });
             const response = await fetch(imgPart);
             const arrayBuffer = await response.arrayBuffer();
             buffer = Buffer.from(arrayBuffer);
@@ -107,6 +108,14 @@ export async function generateImageForBillboard(id, prompt) {
         } else if (imgPart.inlineData) {
             buffer = Buffer.from(imgPart.inlineData.data, 'base64');
             mimeType = imgPart.inlineData.mimeType;
+        } else if (imgPart.fileData) {
+            // If it's fileData (Google Cloud Storage URL usually)
+            const fileUrl = imgPart.fileData.fileUri;
+            logger.info(`BillboardService: Image returned as fileUri, fetching...`, { url: fileUrl });
+            const response = await fetch(fileUrl);
+            const arrayBuffer = await response.arrayBuffer();
+            buffer = Buffer.from(arrayBuffer);
+            mimeType = response.headers.get('content-type') || 'image/png';
         }
 
         if (!buffer) throw new Error('Could not process generated image buffer');
