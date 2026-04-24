@@ -28,8 +28,6 @@ export async function createBillboard(data, file = null) {
 }
 
 export async function updateBillboard(id, data, file = null) {
-    logger.info(`BillboardService: Updating billboard ${id}`, { hasFile: !!file });
-    
     let imageUrl = data.imageUrl;
 
     if (file) {
@@ -51,14 +49,15 @@ export async function updateBillboard(id, data, file = null) {
         payload.imageUrl = imageUrl;
     }
 
-    // Ensure we don't try to update ID
+    // Safety: Firestore doesn't like id in the body
     delete payload.id;
     delete payload._id;
 
+    logger.info(`BillboardService: Updating database for ${id}`, { payloadKeys: Object.keys(payload) });
+
     const updated = await Billboard.findByIdAndUpdate(id, payload, { new: true });
     if (!updated) throw new Error('Billboard not found');
-    
-    logger.info(`Billboard updated successfully: ${id}`);
+    logger.info(`Billboard updated in DB: ${id}`);
     return updated;
 }
 
@@ -79,8 +78,6 @@ export async function listBillboards(filters = {}) {
 }
 
 export async function generateImageForBillboard(id, prompt) {
-    logger.info(`BillboardService: Generating image for billboard ${id}`);
-    
     const billboard = await Billboard.findById(id);
     if (!billboard) throw new Error('Billboard not found');
 
@@ -90,13 +87,12 @@ export async function generateImageForBillboard(id, prompt) {
     if (billboard.layoutType === 'middle') aspectRatio = '4:3';
     else if (billboard.layoutType === 'mini') aspectRatio = '1:1';
 
-    logger.info(`Generating image with prompt: ${imagePrompt} and aspectRatio: ${aspectRatio}`);
+    logger.info(`BillboardService: Requesting AI image for ${id}`, { prompt: imagePrompt, aspectRatio });
 
     const imageResult = await aiService.generateImage(imagePrompt, { aspectRatio });
-    
     if (!imageResult.success || !imageResult.images || imageResult.images.length === 0) {
-        logger.error(`AI Image Generation failed: ${imageResult.error || 'No images returned'}`);
-        throw new Error(`Failed to generate image: ${imageResult.error || 'AI service returned no results'}`);
+        logger.error('BillboardService: AI generation failed', { result: imageResult });
+        throw new Error('Failed to generate image: ' + (imageResult.error || 'No results from AI'));
     }
 
     const imgPart = imageResult.images[0];
@@ -115,6 +111,8 @@ export async function generateImageForBillboard(id, prompt) {
 
         if (!buffer) throw new Error('Could not process generated image buffer');
 
+        logger.info(`BillboardService: Uploading generated image for ${id}`);
+
         const uploadResult = await storageService.uploadUserAsset(
             'system',
             buffer,
@@ -122,21 +120,12 @@ export async function generateImageForBillboard(id, prompt) {
             'billboard_images'
         );
 
+        logger.info(`BillboardService: Image uploaded for ${id}`, { url: uploadResult.url });
+
         const updated = await updateBillboard(id, { imageUrl: uploadResult.url });
-        logger.info(`Billboard image updated via AI: ${id}`);
         return updated;
     } catch (err) {
-        logger.error(`Error processing/uploading generated image: ${err.message}`);
-        throw new Error(`Error processing generated image: ${err.message}`);
+        logger.error(`BillboardService: Failed to process/upload generated image: ${err.message}`);
+        throw new Error(`Process failed: ${err.message}`);
     }
 }
-
-const billboardService = {
-    createBillboard,
-    updateBillboard,
-    deleteBillboard,
-    listBillboards,
-    generateImageForBillboard
-};
-
-export default billboardService;

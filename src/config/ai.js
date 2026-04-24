@@ -46,12 +46,12 @@ const GEMINI_CONFIG = {
     apiKey: process.env.GEMINI_API_KEY,
 
     models: {
-        flash: process.env.GEMINI_FLASH_MODEL || "gemini-1.5-flash",
-        pro: process.env.GEMINI_PRO_MODEL || "gemini-1.5-pro",
-        image: process.env.GEMINI_IMAGE_MODEL || "imagen-3.0-generate-001",
+        flash: process.env.GEMINI_FLASH_MODEL || "gemini-3-flash-preview",
+        pro: process.env.GEMINI_PRO_MODEL || "gemini-3-pro-preview",
+        image: process.env.GEMINI_IMAGE_FLASH_MODEL || "gemini-3-flash-preview",
     },
 
-    defaultModel: process.env.GEMINI_DEFAULT_MODEL || "gemini-1.5-flash",
+    defaultModel: process.env.GEMINI_DEFAULT_MODEL || "gemini-3-flash-preview",
 
     generationConfig: {
         temperature: parseFloat(process.env.GEMINI_TEMPERATURE || COMMON_CONFIG.defaultTemperature),
