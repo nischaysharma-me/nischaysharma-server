@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import BaseAIProvider from "../base.js";
 import { AI_CONFIG } from "../../../config/ai.js";
+import logger from "../../../utils/logger.js";
 
 class GeminiAIProvider extends BaseAIProvider {
     constructor() {
@@ -354,6 +355,8 @@ class GeminiAIProvider extends BaseAIProvider {
                     config.config.imageConfig.imageSize = options.imageSize;
                 }
             }
+
+            logger.log('xvf', config);
             
             const response = await this.ai.models.generateContent(config);
 
