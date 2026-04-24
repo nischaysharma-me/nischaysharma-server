@@ -4,8 +4,25 @@ import logger from '../utils/logger.js';
 
 export const createBillboard = async (req, res) => {
     try {
+        const { uid } = req.user;
         const billboard = await billboardSvc.createBillboard(req.body, req.file);
-        res.status(201).json({ success: true, data: billboard });
+        
+        let jobId = null;
+        // Auto-generate image if not provided via upload or URL
+        if (!req.file && !req.body.imageUrl) {
+            logger.info(`BillboardController: Auto-queuing image generation for new billboard ${billboard.id}`);
+            const job = await jobService.addJob('billboard-image-generation', {
+                billboardId: billboard.id,
+                prompt: req.body.imagePrompt || ''
+            }, uid);
+            jobId = job.id;
+        }
+
+        res.status(201).json({ 
+            success: true, 
+            data: billboard,
+            jobId // Return jobId if auto-generation started
+        });
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });
     }
