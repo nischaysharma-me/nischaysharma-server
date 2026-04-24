@@ -38,6 +38,14 @@ class FirebaseModel {
             if (normalized[field] !== undefined && normalized[field] !== null) {
                 if (rules.type === Date || (rules.type && rules.type.name === 'Date')) {
                     normalized[field] = this._toDate(normalized[field]);
+                } else if (rules.type === Number || (rules.type && rules.type.name === 'Number')) {
+                    if (typeof normalized[field] === 'string' && normalized[field] !== '') {
+                        normalized[field] = Number(normalized[field]);
+                    }
+                } else if (rules.type === Boolean || (rules.type && rules.type.name === 'Boolean')) {
+                    if (typeof normalized[field] === 'string') {
+                        normalized[field] = normalized[field].toLowerCase() === 'true';
+                    }
                 }
             }
         }
