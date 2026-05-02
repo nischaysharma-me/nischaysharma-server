@@ -48,7 +48,7 @@ const GEMINI_CONFIG = {
     models: {
         flash: process.env.GEMINI_FLASH_MODEL || "gemini-3-flash-preview",
         pro: process.env.GEMINI_PRO_MODEL || "gemini-3-pro-preview",
-        image: process.env.GEMINI_IMAGE_FLASH_MODEL || "gemini-3-flash-preview",
+        image: process.env.GEMINI_IMAGE_FLASH_MODEL || "gemini-3.1-flash-image-preview",
     },
 
     defaultModel: process.env.GEMINI_DEFAULT_MODEL || "gemini-3-flash-preview",

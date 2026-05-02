@@ -504,5 +504,8 @@ export {
     getArticleById,
     updateArticle,
     deleteArticle,
+    deleteAllArticles,
+    listArticles,
+    publishArticle,
     generateBackgroundImage
 };

@@ -1,4 +1,5 @@
 import { AIProvider } from "../providers/ai/registry.js";
+import logger from "../utils/logger.js";
 
 const ai = AIProvider(process.env.AI_PROVIDER || "gemini");
 
@@ -33,6 +34,7 @@ async function* chatStream(messages, options = {}) {
 
 async function generateImage(prompt, options = {}) {
     try {
+        logger.log('xvf', prompt);
         return await ai.generateImage(prompt, options);
     } catch (error) {
         throw new Error(`AI Service Error: ${error.message}`);

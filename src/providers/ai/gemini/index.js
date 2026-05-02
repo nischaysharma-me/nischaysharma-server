@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import BaseAIProvider from "../base.js";
 import { AI_CONFIG } from "../../../config/ai.js";
+import logger from "../../../utils/logger.js";
 
 class GeminiAIProvider extends BaseAIProvider {
     constructor() {
@@ -132,12 +133,22 @@ class GeminiAIProvider extends BaseAIProvider {
      */
     _extractImages(response) {
         const images = [];
-        if (response.candidates && response.candidates[0]?.content?.parts) {
-            for (const part of response.candidates[0].content.parts) {
+        // Handle both raw response and enhanced response
+        const candidates = response.candidates || response.response?.candidates;
+        
+        if (candidates && candidates[0]?.content?.parts) {
+            for (const part of candidates[0].content.parts) {
                 if (part.inlineData) {
                     images.push({
                         inlineData: part.inlineData
                     });
+                } else if (part.fileData) {
+                    images.push({
+                        fileData: part.fileData
+                    });
+                } else if (part.text && (part.text.startsWith('http') || part.text.includes('googleusercontent.com'))) {
+                    // Some models return a URL in the text part
+                    images.push(part.text.trim());
                 }
             }
         }
@@ -344,6 +355,8 @@ class GeminiAIProvider extends BaseAIProvider {
                     config.config.imageConfig.imageSize = options.imageSize;
                 }
             }
+
+            logger.log('xvf', config);
             
             const response = await this.ai.models.generateContent(config);
 
