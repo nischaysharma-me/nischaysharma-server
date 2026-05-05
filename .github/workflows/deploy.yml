@@ -18,17 +18,24 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
+            # Load environment profiles
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            [ -s "$HOME/.bashrc" ] && . "$HOME/.bashrc"
+            [ -s "$HOME/.profile" ] && . "$HOME/.profile"
+
             # Navigate to the project directory
             cd /home/apped/nischaysharma-server
-            
+
             # Pull the latest code
             git pull origin ${{ github.ref_name }}
-            
+
             # Install production dependencies
             npm install --production
-            
+
             # Restart the server using PM2
-            pm2 restart nischaysharma-server --update-env || pm2 start src/server.js --name taughtcode-server
+            pm2 restart nischaysharma-server --update-env || pm2 start src/server.js --name nischaysharma-server
+
 
       - name: Notify Success
         if: success()
