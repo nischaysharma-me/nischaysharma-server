@@ -19,7 +19,7 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             # Navigate to the project directory
-            cd /var/www/taughtcode-server
+            cd /home/apped/nischaysharma-server
             
             # Pull the latest code
             git pull origin ${{ github.ref_name }}
@@ -28,7 +28,7 @@ jobs:
             npm install --production
             
             # Restart the server using PM2
-            pm2 restart taughtcode-server --update-env || pm2 start src/server.js --name taughtcode-server
+            pm2 restart nischaysharma-server --update-env || pm2 start src/server.js --name taughtcode-server
 
       - name: Notify Success
         if: success()
