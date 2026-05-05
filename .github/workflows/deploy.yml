@@ -1,0 +1,51 @@
+name: Deploy TaughtCode Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            # Navigate to the project directory
+            cd /var/www/taughtcode-server
+            
+            # Pull the latest code
+            git pull origin ${{ github.ref_name }}
+            
+            # Install production dependencies
+            npm install --production
+            
+            # Restart the server using PM2
+            pm2 restart taughtcode-server --update-env || pm2 start src/server.js --name taughtcode-server
+
+      - name: Notify Success
+        if: success()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: success
+          title: "🚀 Server Deployment Successful"
+          description: "TaughtCode Server has been successfully deployed to production."
+          color: 0x28a745
+
+      - name: Notify Failure
+        if: failure()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: failure
+          title: "❌ Server Deployment Failed"
+          description: "The deployment pipeline for TaughtCode Server has encountered an error."
+          color: 0xff0000
