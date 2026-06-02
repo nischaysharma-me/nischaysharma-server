@@ -4,8 +4,8 @@ export const updateUserSchema = Joi.object({
     email: Joi.string().email().optional(),
     displayName: Joi.string().min(2).max(50),
     occupation: Joi.string().allow(''),
-    bio: Joi.string().max(1000).allow(''),
-    vision: Joi.string().max(2000).allow(''),
+    bio: Joi.string().max(10000).allow(''),
+    vision: Joi.string().max(10000).allow(''),
     skills: Joi.array().items(Joi.string()).optional(),
     projects: Joi.array().items(
         Joi.object({

@@ -33,12 +33,12 @@ const userProfileSchema = {
     },
     bio: {
         type: String,
-        maxlength: 1000,
+        maxlength: 10000,
         trim: true
     },
     vision: {
         type: String,
-        maxlength: 2000,
+        maxlength: 10000,
         trim: true
     },
     skills: {
