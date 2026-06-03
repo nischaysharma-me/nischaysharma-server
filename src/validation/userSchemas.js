@@ -17,12 +17,18 @@ export const updateUserSchema = Joi.object({
     ).optional(),
     experience: Joi.array().items(
         Joi.object({
-            title: Joi.string().required(),
             company: Joi.string().required(),
-            startDate: Joi.string().allow(''),
-            endDate: Joi.string().allow(''),
-            description: Joi.string().allow(''),
-            logo: Joi.string().allow('').optional()
+            logo: Joi.string().allow('').optional(),
+            location: Joi.string().allow('').optional(),
+            roles: Joi.array().items(
+                Joi.object({
+                    title: Joi.string().required(),
+                    startDate: Joi.string().allow(''),
+                    endDate: Joi.string().allow(''),
+                    description: Joi.string().allow(''),
+                    employmentType: Joi.string().allow('').optional()
+                })
+            ).min(1).required()
         })
     ).optional(),
     education: Joi.array().items(
