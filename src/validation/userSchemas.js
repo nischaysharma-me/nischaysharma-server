@@ -11,7 +11,7 @@ export const updateUserSchema = Joi.object({
         Joi.object({
             title: Joi.string().required(),
             description: Joi.string().allow(''),
-            link: Joi.string().uri().allow('').optional(),
+            link: Joi.string().allow('').optional(),
             image: Joi.string().allow('').optional()
         })
     ).optional(),
