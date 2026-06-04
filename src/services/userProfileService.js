@@ -1,4 +1,4 @@
-import { User, Article, Book } from '../models/index.js';
+import { User, Article, Book, Project, Experience, Education } from '../models/index.js';
 import logger from '../utils/logger.js';
 import * as storageService from './storageService.js';
 
@@ -35,22 +35,11 @@ async function updateUser(uid, updateData) {
         return profile;
     }
 
-    // 3. Handle Integrations Merge (Prevent overwriting existing keys/tokens)
-    if (updateData.integrations) {
-        logger.info(`UserService: Merging integrations for user ${uid}`, { incoming: updateData.integrations });
-        const currentIntegrations = profile.integrations || {};
-        const newIntegrations = updateData.integrations;
-        
-        Object.keys(newIntegrations).forEach(provider => {
-            currentIntegrations[provider] = {
-                ...(currentIntegrations[provider] || {}),
-                ...(newIntegrations[provider] || {}),
-                updatedAt: new Date()
-            };
-        });
-        
-        updateData.integrations = currentIntegrations;
-    }
+    // 3. Handle Integrations and modular components (Redirect to separate collections)
+    delete updateData.integrations;
+    delete updateData.experience;
+    delete updateData.education;
+    delete updateData.projects;
 
     const updatedProfile = await User.findByIdAndUpdate(
         profile.id,
@@ -341,6 +330,12 @@ async function populateFeaturedItems(user) {
                 data = await Article.findById(item.id);
             } else if (item.type === 'book') {
                 data = await Book.findById(item.id);
+            } else if (item.type === 'project') {
+                data = await Project.findById(item.id);
+                // Fallback to legacy projects if not found in collection
+                if (!data && user.projects) {
+                    data = user.projects.find(p => p.id === item.id || p.title === item.title);
+                }
             }
             
             if (data) {
@@ -373,6 +368,67 @@ async function getHomeData() {
 
     let featured = await populateFeaturedItems(admin);
 
+    // Fetch all separate components for the profile
+    const userId = admin.uid || admin.id;
+    const [projectsCollection, experience, education] = await Promise.all([
+        Project.find({ userId }),
+        Experience.find({ userId }),
+        Education.find({ userId })
+    ]);
+
+    // Merge legacy projects with collection projects (de-duplicate by title)
+    const legacyProjects = admin.projects || [];
+    const projectsMap = new Map();
+    
+    // Add legacy ones first
+    legacyProjects.forEach(p => {
+        if (p && p.title) projectsMap.set(p.title.toLowerCase(), p);
+    });
+    
+    // Override with new collection data (more up to date)
+    projectsCollection.forEach(p => {
+        if (p && p.title) projectsMap.set(p.title.toLowerCase(), p);
+    });
+
+    // Merge legacy experience (de-duplicate by company)
+    const legacyExperience = admin.experience || [];
+    const expMap = new Map();
+    legacyExperience.forEach(e => {
+        if (e && e.company) {
+            const key = e.company.toLowerCase();
+            expMap.set(key, {
+                ...e,
+                roles: e.roles || [{ title: e.title, startDate: e.startDate, endDate: e.endDate, description: e.description }]
+            });
+        }
+    });
+    experience.forEach(e => {
+        if (e && e.company) expMap.set(e.company.toLowerCase(), e);
+    });
+
+    // Merge legacy education (de-duplicate by school)
+    const legacyEducation = admin.education || [];
+    const eduMap = new Map();
+    legacyEducation.forEach(e => {
+        if (e && e.school) {
+            const key = `${e.school}-${e.degree || ''}`.toLowerCase();
+            eduMap.set(key, e);
+        }
+    });
+    education.forEach(e => {
+        if (e && e.school) {
+            const key = `${e.school}-${e.degree || ''}`.toLowerCase();
+            eduMap.set(key, e);
+        }
+    });
+
+    const enrichedProfile = {
+        ...admin,
+        projects: Array.from(projectsMap.values()),
+        experience: Array.from(expMap.values()),
+        education: Array.from(eduMap.values())
+    };
+
     // Fallback: If no featured items, get latest published articles
     if (featured.length === 0) {
         const latestArticles = await Article.find({ status: 'published' }, { limit: 10, sort: { createdAt: -1 } });
@@ -385,7 +441,7 @@ async function getHomeData() {
     }
 
     return {
-        profile: admin,
+        profile: enrichedProfile,
         featured
     };
 }

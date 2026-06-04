@@ -7,6 +7,9 @@ import conversationRoutes from './conversations.js';
 import bookRoutes from './books.js';
 import eventRoutes from './events.js';
 import billboardRoutes from './billboards.js';
+import projectRoutes from './projects.js';
+import experienceRoutes from './experience.js';
+import educationRoutes from './education.js';
 import * as docsController from '../controllers/docsController.js';
 
 const router = express.Router();
@@ -40,6 +43,15 @@ router.use('/events', eventRoutes);
 
 // Billboard Routes
 router.use('/billboards', billboardRoutes);
+
+// Project Routes
+router.use('/projects', projectRoutes);
+
+// Professional Experience Routes
+router.use('/experience', experienceRoutes);
+
+// Academic Background Routes
+router.use('/education', educationRoutes);
 
 // Documentation API Routes
 router.get('/docs/navigation', docsController.listDocs);

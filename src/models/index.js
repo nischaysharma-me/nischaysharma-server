@@ -10,6 +10,10 @@ import bookModel from './bookModel.js';
 import pageModel from './pageModel.js';
 import eventModel from './eventModel.js';
 import billboardModel from './billboardModel.js';
+import projectModel from './projectModel.js';
+import integrationModel from './integrationModel.js';
+import experienceModel from './experienceModel.js';
+import educationModel from './educationModel.js';
 
 // Export specific models
 export const User = userProfileModel;
@@ -23,6 +27,10 @@ export const Book = bookModel;
 export const Page = pageModel;
 export const Event = eventModel;
 export const Billboard = billboardModel;
+export const Project = projectModel;
+export const Integration = integrationModel;
+export const Experience = experienceModel;
+export const Education = educationModel;
 
 // Helper to create simple models on the fly
 export const createModel = (collectionName, schema = null) => {

@@ -33,28 +33,16 @@ const userProfileSchema = {
     },
     bio: {
         type: String,
-        maxlength: 1000,
+        maxlength: 10000,
         trim: true
     },
     vision: {
         type: String,
-        maxlength: 2000,
+        maxlength: 10000,
         trim: true
     },
     skills: {
         type: Array,
-        default: []
-    },
-    projects: {
-        type: Array, // Array of { title, description, link, image }
-        default: []
-    },
-    experience: {
-        type: Array, // Array of { title, company, startDate, endDate, description, logo }
-        default: []
-    },
-    education: {
-        type: Array, // Array of { school, degree, fieldOfStudy, startDate, endDate, logo }
         default: []
     },
     expertise: {
@@ -103,10 +91,6 @@ const userProfileSchema = {
             notifications: true,
             language: 'en'
         }
-    },
-    integrations: {
-        type: Object,
-        default: {}
     },
     analytics: {
         type: Object,

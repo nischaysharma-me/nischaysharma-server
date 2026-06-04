@@ -5,8 +5,12 @@ class FirebaseStorageProvider extends BaseStorageProvider {
     constructor() {
         super();
         // Use configured bucket or fall back to default
-        // this.bucketName = process.env.FIREBASE_STORAGE_BUCKET || undefined; 
-        this.bucket = admin.storage().bucket();
+        // Clean bucket name if it contains gs://
+        let bucketName = process.env.FIREBASE_STORAGE_BUCKET;
+        if (bucketName && bucketName.startsWith('gs://')) {
+            bucketName = bucketName.replace('gs://', '');
+        }
+        this.bucket = admin.storage().bucket(bucketName);
     }
 
     /**
@@ -33,6 +37,7 @@ class FirebaseStorageProvider extends BaseStorageProvider {
             // Get public URL if public, otherwise just return path info
             let publicUrl = null;
             if (options.isPublic) {
+                // Use the standard GCS public URL format as requested by the user
                 publicUrl = `https://storage.googleapis.com/${this.bucket.name}/${destination}`;
             }
 
