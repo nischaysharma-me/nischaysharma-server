@@ -205,6 +205,12 @@ export async function syncIntegration(userId, providerName, syncOptions = {}) {
     if (!config) throw new Error(`Integration ${providerName} not configured for this user`);
 
     const provider = IntegrationProvider(providerName, config);
+    
+    // Ensure we have a client initialized if possible
+    if (!provider.client && config.accessToken) {
+        provider.client = provider.initializeClient(config.accessToken);
+    }
+
     // Connect first
     await provider.connect();
     

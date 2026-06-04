@@ -27,7 +27,11 @@ export async function updateIntegration(req, res) {
         res.json({ success: true, data: updated });
     } catch (error) {
         logger.error(`IntegrationController: Error updating ${req.params.provider}:`, error);
-        res.status(400).json({ success: false, error: error.message });
+        res.status(400).json({ 
+            success: false, 
+            error: error.message,
+            details: `Failed to update ${req.params.provider} for user ${userId || 'unknown'}`
+        });
     }
 }
 
@@ -46,7 +50,11 @@ export async function syncIntegration(req, res) {
         res.json({ success: true, data });
     } catch (error) {
         logger.error(`IntegrationController: Error syncing ${req.params.provider}:`, error);
-        res.status(400).json({ success: false, error: error.message });
+        res.status(400).json({ 
+            success: false, 
+            error: error.message,
+            details: `Failed to sync ${req.params.provider} for user ${userId || 'unknown'}. Ensure the integration is fully connected.`
+        });
     }
 }
 
