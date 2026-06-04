@@ -37,8 +37,8 @@ class FirebaseStorageProvider extends BaseStorageProvider {
             // Get public URL if public, otherwise just return path info
             let publicUrl = null;
             if (options.isPublic) {
-                // Use a more robust public URL format
-                publicUrl = `https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURIComponent(destination)}?alt=media`;
+                // Use the standard GCS public URL format as requested by the user
+                publicUrl = `https://storage.googleapis.com/${this.bucket.name}/${destination}`;
             }
 
             return {

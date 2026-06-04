@@ -1,5 +1,8 @@
 import * as userService from '../services/userProfileService.js';
 import * as storageService from '../services/storageService.js';
+import * as projectService from '../services/projectService.js';
+import * as experienceService from '../services/experienceService.js';
+import * as educationService from '../services/educationService.js';
 import logger from '../utils/logger.js';
 
 /**
@@ -57,7 +60,71 @@ const getPublicAdminProfile = async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, error: 'Admin profile not found' });
         }
-        res.json({ success: true, data: user });
+        
+        const userId = user.uid || user.id;
+
+        // Fetch all separate components
+        const [projects, experience, education] = await Promise.all([
+            projectService.getUserProjects(userId),
+            experienceService.getUserExperiences(userId),
+            educationService.getUserEducation(userId)
+        ]);
+        
+        // Merge legacy projects with collection projects (de-duplicate by title)
+        const legacyProjects = user.projects || [];
+        const projectsMap = new Map();
+        
+        // Add legacy ones first
+        legacyProjects.forEach(p => {
+            if (p && p.title) projectsMap.set(p.title.toLowerCase(), p);
+        });
+        
+        // Override with new collection data (more up to date)
+        projects.forEach(p => {
+            if (p && p.title) projectsMap.set(p.title.toLowerCase(), p);
+        });
+
+        // Merge legacy experience (de-duplicate by company)
+        const legacyExperience = user.experience || [];
+        const expMap = new Map();
+        legacyExperience.forEach(e => {
+            if (e && e.company) {
+                const key = e.company.toLowerCase();
+                expMap.set(key, {
+                    ...e,
+                    roles: e.roles || [{ title: e.title, startDate: e.startDate, endDate: e.endDate, description: e.description }]
+                });
+            }
+        });
+        experience.forEach(e => {
+            if (e && e.company) expMap.set(e.company.toLowerCase(), e);
+        });
+
+        // Merge legacy education (de-duplicate by school)
+        const legacyEducation = user.education || [];
+        const eduMap = new Map();
+        legacyEducation.forEach(e => {
+            if (e && e.school) {
+                const key = `${e.school}-${e.degree || ''}`.toLowerCase();
+                eduMap.set(key, e);
+            }
+        });
+        education.forEach(e => {
+            if (e && e.school) {
+                const key = `${e.school}-${e.degree || ''}`.toLowerCase();
+                eduMap.set(key, e);
+            }
+        });
+
+        res.json({ 
+            success: true, 
+            data: {
+                ...user,
+                projects: Array.from(projectsMap.values()),
+                experience: Array.from(expMap.values()),
+                education: Array.from(eduMap.values())
+            } 
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

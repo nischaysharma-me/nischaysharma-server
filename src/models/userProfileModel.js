@@ -45,18 +45,6 @@ const userProfileSchema = {
         type: Array,
         default: []
     },
-    projects: {
-        type: Array, // Array of { title, description, link, image }
-        default: []
-    },
-    experience: {
-        type: Array, // Array of { title, company, startDate, endDate, description, logo }
-        default: []
-    },
-    education: {
-        type: Array, // Array of { school, degree, fieldOfStudy, startDate, endDate, logo }
-        default: []
-    },
     expertise: {
         type: Array,
         default: [] // Areas the user is knowledgeable in
@@ -103,10 +91,6 @@ const userProfileSchema = {
             notifications: true,
             language: 'en'
         }
-    },
-    integrations: {
-        type: Object,
-        default: {}
     },
     analytics: {
         type: Object,

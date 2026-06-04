@@ -1,4 +1,4 @@
-import { User } from '../models/index.js';
+import { User, Integration } from '../models/index.js';
 import logger from '../utils/logger.js';
 import { IntegrationProvider } from '../providers/integrations/registry.js';
 import { INTEGRATIONS_CONFIG } from '../config/integrations.js';
@@ -11,11 +11,17 @@ import { raw } from 'express';
  * Get the integration config for a user, combining defaults with user overrides
  */
 export async function getConfigForUser(userId, providerName) {
-    const profile = await User.findById(userId);
-    if (!profile) throw new Error('User profile not found');
+    let integrationDoc = await Integration.findOne({ userId });
     
-    // Config is stored within the integrations object in the profile
-    const userConfig = profile.integrations?.[providerName] || {};
+    // Check if we need to migrate or initialize
+    if (!integrationDoc) {
+        const profile = await User.findById(userId);
+        if (profile?.integrations?.[providerName]) {
+            integrationDoc = await Integration.create({ userId, ...profile.integrations });
+        }
+    }
+    
+    const userConfig = integrationDoc?.[providerName] || {};
     const defaultConfig = INTEGRATIONS_CONFIG[providerName] || {};
 
     logger.debug(`IntegrationService: Resolving config for ${providerName} (User: ${userId})`, { 
@@ -107,16 +113,12 @@ export async function handleCallback(providerName, code, userId) {
  * @param {Object} options - Update options (e.g., skipValidation)
  */
 export async function updateIntegration(userId, providerName, config, options = {}) {
-    const profile = await User.findById(userId);
-    if (!profile) throw new Error('User not found');
-
-    // Requirement: Only admins can configure integrations in their profile
-    if (profile.role !== 'admin') {
-        throw new Error('Only admins can configure profile integrations');
+    let integrationDoc = await Integration.findOne({ userId });
+    if (!integrationDoc) {
+        integrationDoc = await Integration.create({ userId });
     }
 
-    const integrations = profile.integrations || {};
-    const existingConfig = integrations[providerName] || {};
+    const existingConfig = integrationDoc[providerName] || {};
     
     // Merge new config with existing to preserve keys (ClientId, Secret)
     const mergedConfig = { ...existingConfig, ...config };
@@ -130,17 +132,17 @@ export async function updateIntegration(userId, providerName, config, options = 
             throw new Error(`Failed to connect to ${providerName}`);
         }
 
-        integrations[providerName] = {
+        integrationDoc[providerName] = {
             ...mergedConfig,
             connected: true,
             accountName: validation.accountName || validation.user || validation.name || validation.urn,
             personUrn: validation.personUrn || validation.urn || null,
-            connectedAt: integrations[providerName]?.connectedAt || new Date(),
+            connectedAt: integrationDoc[providerName]?.connectedAt || new Date(),
             updatedAt: new Date()
         };
     } else {
         // Just update configuration (keys) or metadata
-        integrations[providerName] = {
+        integrationDoc[providerName] = {
             ...mergedConfig,
             // If accessToken was provided but validation was skipped, assume connected
             connected: mergedConfig.accessToken ? true : !!mergedConfig.connected,
@@ -149,15 +151,20 @@ export async function updateIntegration(userId, providerName, config, options = 
         
         // If we are saving connections from handleCallback, we want to normalize fields too
         if (config.accountName || config.urn || config.personUrn) {
-            integrations[providerName].accountName = config.accountName || mergedConfig.accountName;
-            integrations[providerName].personUrn = config.personUrn || config.urn || mergedConfig.personUrn;
+            integrationDoc[providerName].accountName = config.accountName || mergedConfig.accountName;
+            integrationDoc[providerName].personUrn = config.personUrn || config.urn || mergedConfig.personUrn;
         }
     }
+ 
+    const updateData = {
+        [providerName]: integrationDoc[providerName],
+        updatedAt: new Date()
+    };
 
-    const updatedProfile = await User.findByIdAndUpdate(userId, { integrations }, { new: true });
+    const updatedDoc = await Integration.findByIdAndUpdate(integrationDoc.id, updateData, { new: true });
     logger.info(`IntegrationService: User ${userId} updated integration: ${providerName}`);
     
-    return updatedProfile;
+    return updatedDoc;
 }
 
 /**
@@ -166,9 +173,25 @@ export async function updateIntegration(userId, providerName, config, options = 
  * @param {string} providerName 
  */
 export async function getIntegration(userId, providerName) {
-    const profile = await User.findById(userId);
-    if (!profile || !profile.integrations) return null;
-    return profile.integrations[providerName] || null;
+    let doc = await Integration.findOne({ userId });
+    let config = doc ? (doc[providerName] || null) : null;
+    
+    // Fallback to User profile for legacy data
+    if (!config) {
+        const profile = await User.findById(userId);
+        if (profile?.integrations?.[providerName]) {
+            config = profile.integrations[providerName];
+        }
+    }
+
+    if (config) {
+        // Ensure accessToken is normalized (legacy might have snake_case)
+        if (!config.accessToken && config.access_token) {
+            config.accessToken = config.access_token;
+        }
+    }
+    
+    return config;
 }
 
 /**
@@ -250,16 +273,18 @@ export async function syncProfileStats(userId, providerName, options = {}) {
  * @param {string} providerName 
  */
 export async function removeIntegration(userId, providerName) {
-    const profile = await User.findById(userId);
-    if (!profile || !profile.integrations) return null;
+    const doc = await Integration.findOne({ userId });
+    if (!doc) return null;
 
-    const integrations = { ...profile.integrations };
-    delete integrations[providerName];
+    const updateData = {
+        [providerName]: null,
+        updatedAt: new Date()
+    };
 
-    const updatedProfile = await User.findByIdAndUpdate(userId, { integrations }, { new: true });
+    const updatedDoc = await Integration.findByIdAndUpdate(doc.id, updateData, { new: true });
     logger.info(`IntegrationService: User ${userId} removed integration: ${providerName}`);
     
-    return updatedProfile;
+    return updatedDoc;
 }
 
 /**
@@ -267,7 +292,13 @@ export async function removeIntegration(userId, providerName) {
  * @param {string} userId 
  */
 export async function listIntegrations(userId) {
+    const doc = await Integration.findOne({ userId });
+    if (doc) {
+        const { id, userId: _, updatedAt, ...providers } = doc;
+        return providers;
+    }
+    
+    // Check user profile for migration
     const profile = await User.findById(userId);
-    if (!profile) throw new Error('User not found');
-    return profile.integrations || {};
+    return profile?.integrations || {};
 }
