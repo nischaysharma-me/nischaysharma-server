@@ -84,6 +84,10 @@ class GitHubIntegrationProvider extends BaseIntegrationProvider {
                 return await this.getProfileStats();
             }
 
+            if (action === 'get_pinned') {
+                return await this.getPinnedRepositories();
+            }
+
             const { data } = await this.client.repos.getContent({
                 owner,
                 repo,
@@ -183,6 +187,56 @@ class GitHubIntegrationProvider extends BaseIntegrationProvider {
             return viewer;
         } catch (error) {
             throw new Error(`GitHub GraphQL Error: ${error.message}`);
+        }
+    }
+
+    /**
+     * Fetch pinned repositories using GraphQL
+     */
+    async getPinnedRepositories() {
+        try {
+            const query = `
+                {
+                  viewer {
+                    pinnedItems(first: 6, types: [REPOSITORY]) {
+                      nodes {
+                        ... on Repository {
+                          name
+                          description
+                          url
+                          openGraphImageUrl
+                          stargazerCount
+                          languages(first: 3, orderBy: {field: SIZE, direction: DESC}) {
+                            nodes {
+                              name
+                            }
+                          }
+                          repositoryTopics(first: 5) {
+                            nodes {
+                              topic {
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+            `;
+
+            const { viewer } = await this.client.graphql(query);
+            return viewer.pinnedItems.nodes.map(repo => ({
+                title: repo.name,
+                description: repo.description || '',
+                link: repo.url,
+                image: repo.openGraphImageUrl,
+                stars: repo.stargazerCount,
+                skills: repo.languages.nodes.map(l => l.name),
+                tags: repo.repositoryTopics.nodes.map(t => t.topic.name)
+            }));
+        } catch (error) {
+            throw new Error(`GitHub Pinned Repos Error: ${error.message}`);
         }
     }
 }
