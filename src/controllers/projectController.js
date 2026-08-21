@@ -36,9 +36,12 @@ export const deleteProject = async (req, res) => {
     try {
         const userId = req.user.uid;
         const { id } = req.params;
+        logger.info(`ProjectController: Attempting to delete project ${id} for user ${userId}`);
         await projectService.deleteProject(id, userId);
         res.json({ success: true, message: 'Project deleted' });
     } catch (error) {
-        res.status(400).json({ success: false, error: error.message });
+        logger.error(`ProjectController: Error deleting project: ${error.message}`);
+        const status = error.message === 'Project not found' ? 404 : (error.message === 'Unauthorized' ? 403 : 400);
+        res.status(status).json({ success: false, error: error.message });
     }
 };

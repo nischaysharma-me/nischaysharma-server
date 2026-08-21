@@ -3,6 +3,7 @@ import * as templateService from '../services/articleTemplateService.js';
 import * as bookPageGenerationService from '../services/bookPageGenerationService.js';
 import * as backgroundImageService from '../services/backgroundImageService.js';
 import billboardService from '../services/billboardService.js';
+import stackItemService from '../services/stackItemService.js';
 
 // Map Job Types to Service Functions
 export const JOB_REGISTRY = {
@@ -20,6 +21,9 @@ export const JOB_REGISTRY = {
     },
     'billboard-image-generation': async (userId, data) => {
         return billboardService.generateImageForBillboard(data.billboardId, data.prompt);
+    },
+    'stack-image-generation': async (userId, data) => {
+        return stackItemService.generateImageForStackItem(data.stackItemId, data.prompt);
     }
 };
 

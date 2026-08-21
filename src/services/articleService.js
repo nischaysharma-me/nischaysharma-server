@@ -5,6 +5,7 @@ import * as storageService from './storageService.js';
 import * as templateService from './articleTemplateService.js';
 import { generateStructurePrompt, generateContentPrompt } from '../prompts/articlePrompts.js';
 import { minifyHTML } from '../utils/htmlMinifier.js';
+import fetch from 'node-fetch';
 
 /**
  * Generate a background image for an article
@@ -16,15 +17,15 @@ import { minifyHTML } from '../utils/htmlMinifier.js';
 async function generateBackgroundImage(authorId, topic, templateId = null) {
     let backgroundImageUrl = '';
     try {
-        const bgPrompt = templateId 
-            ? `A beautiful cover image for an article about ${topic} based on a template. Make it look like a high-quality cover image with NO TEXT or words.` 
+        const bgPrompt = templateId
+            ? `A beautiful cover image for an article about ${topic} based on a template. Make it look like a high-quality cover image with NO TEXT or words.`
             : `A high-quality, professional cover image for an article about ${topic}. Ensure there is NO TEXT, typography, or words anywhere in the image.`;
-        
+
         const bgResult = await aiService.generateImage(bgPrompt, {
             aspectRatio: '16:9',
             imageSize: '2K'
         });
-        
+
         if (bgResult.success && bgResult.images.length > 0) {
             const imgPart = bgResult.images[0];
             let buffer, mimeType;
@@ -46,14 +47,14 @@ async function generateBackgroundImage(authorId, topic, templateId = null) {
                     mimeType,
                     'background_images'
                 );
-                
+
                 backgroundImageUrl = uploadResult.url;
             }
         }
     } catch (err) {
         logger.warn(`Failed to generate/upload background image for topic "${topic}":`, err);
     }
-    
+
     return backgroundImageUrl;
 }
 
@@ -117,7 +118,7 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
             sections: template.structure
         };
         templateInstructions = template.aiInstructions || '';
-        
+
         // Increment usage
         await templateService.incrementUsage(templateId);
     } else {
@@ -125,7 +126,7 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
         const structureResult = await aiService.generateText(generateStructurePrompt(topic, depth, instructions), {
             responseMimeType: 'application/json'
         });
-        
+
         try {
             structure = JSON.parse(structureResult.text);
             // Ensure at least 20 tags are present
@@ -151,11 +152,11 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
                 // Optionally, we could enhance the prompt by combining topic + template prompt.
                 let enhancedPrompt = templateId ? `${section.imagePrompt} related to ${topic}` : section.imagePrompt;
                 enhancedPrompt += ". DO NOT include any text, typography, or words in the image.";
-                
+
                 const imageResult = await aiService.generateImage(enhancedPrompt, {
                     aspectRatio: section.imageAspectRatio || '16:9'
                 });
-                
+
                 if (imageResult.success && imageResult.images.length > 0) {
                     const imgPart = imageResult.images[0];
                     let buffer, mimeType;
@@ -177,7 +178,7 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
                             mimeType,
                             'generated_images'
                         );
-                        
+
                         imageUrls[section.heading] = uploadResult.url;
                         imagesAttached.push(uploadResult.url);
                     }
@@ -194,7 +195,7 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
     // 3. Generate Full Content
     // Combine custom instructions with template instructions
     const finalInstructions = `${templateInstructions}\n${instructions}`.trim();
-    
+
     const contentResult = await aiService.generateText(
         generateContentPrompt(structure, imageUrls, depth, finalInstructions),
         { model: 'pro' }
@@ -219,8 +220,8 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
 
 /**
  * Create a new article
- * @param {string} authorId 
- * @param {Object} articleData 
+ * @param {string} authorId
+ * @param {Object} articleData
  */
 async function createArticle(authorId, articleData) {
 
@@ -257,9 +258,9 @@ async function createArticle(authorId, articleData) {
 
 /**
  * Add a review to an article
- * @param {string} articleId 
- * @param {string} userId 
- * @param {Object} reviewData 
+ * @param {string} articleId
+ * @param {string} userId
+ * @param {Object} reviewData
  */
 async function addReview(articleId, userId, reviewData) {
     // Check if article exists
@@ -292,7 +293,7 @@ async function addReview(articleId, userId, reviewData) {
 /**
  * Get article by slug (Public/Reader view)
  * Checks access rights based on monetization
- * @param {string} slug 
+ * @param {string} slug
  * @param {string} [userId] - Current user ID (optional for public)
  */
 async function getArticleBySlug(slug, userId = null) {
@@ -334,8 +335,8 @@ async function getArticleBySlug(slug, userId = null) {
 
 /**
  * Check if a user has access to an article
- * @param {Object} article 
- * @param {string} userId 
+ * @param {Object} article
+ * @param {string} userId
  */
 async function checkAccess(article, userId) {
     // 1. Free Content
@@ -386,7 +387,7 @@ async function checkAccess(article, userId) {
 
 /**
  * Get article by ID
- * @param {string} id 
+ * @param {string} id
  */
 async function getArticleById(id) {
     const article = await Article.findById(id);
@@ -474,7 +475,7 @@ async function deleteArticle(id, authorId) {
 async function deleteAllArticles(authorId) {
     const articles = await Article.find({ authorId });
     let deletedCount = 0;
-    
+
     for (const article of articles) {
         try {
             await deleteArticle(article.id, authorId);
@@ -483,7 +484,7 @@ async function deleteAllArticles(authorId) {
             logger.warn(`Failed to delete article ${article.id} during bulk delete: ${err.message}`);
         }
     }
-    
+
     logger.info(`Deleted ${deletedCount} articles for author ${authorId}`);
     return deletedCount;
 }

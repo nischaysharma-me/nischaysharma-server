@@ -10,13 +10,14 @@ import billboardRoutes from './billboards.js';
 import projectRoutes from './projects.js';
 import experienceRoutes from './experience.js';
 import educationRoutes from './education.js';
+import stackRoutes from './stack.js';
 import * as docsController from '../controllers/docsController.js';
 
 const router = express.Router();
 
 /**
  * API Routes Aggregator
- * 
+ *
  * Base path: /api/v1
  */
 
@@ -52,6 +53,9 @@ router.use('/experience', experienceRoutes);
 
 // Academic Background Routes
 router.use('/education', educationRoutes);
+
+// Stack Menu Routes
+router.use('/stack', stackRoutes);
 
 // Documentation API Routes
 router.get('/docs/navigation', docsController.listDocs);

@@ -26,7 +26,7 @@ async function addJob(type, data, userId) {
     });
 
     logger.info(`Job persisted: ${job.id} (${type})`);
-    
+
     // Emit via WebSocket
     emitToUser(userId, 'job:created', {
         id: job.id,
@@ -47,7 +47,7 @@ async function addJob(type, data, userId) {
 
 /**
  * Get job status
- * @param {string} jobId 
+ * @param {string} jobId
  */
 async function getJob(jobId) {
     const job = await Job.findById(jobId);
@@ -57,7 +57,7 @@ async function getJob(jobId) {
 
 /**
  * Process a job (Called by Worker)
- * @param {string} jobId 
+ * @param {string} jobId
  */
 async function processJob(jobId) {
     const job = await Job.findById(jobId);
@@ -65,14 +65,14 @@ async function processJob(jobId) {
 
     // Double check status before running (concurrency safety)
     // Although BullMQ handles concurrency, this prevents reprocessing if manually triggered
-    if (job.status !== 'queued' && job.status !== 'failed') return; 
+    if (job.status !== 'queued' && job.status !== 'failed') return;
 
     // Transition to Processing
     await updateJobStatus(jobId, 'processing', 10);
 
     try {
         logger.info(`Processing job ${jobId} (${job.type})...`);
-        
+
         const workerFn = getWorkerFunction(job.type);
         if (!workerFn) {
             throw new Error(`No worker registered for job type: ${job.type}`);
@@ -81,14 +81,25 @@ async function processJob(jobId) {
         // Execute Worker Function
         // Convention: fn(userId, data)
         const result = await workerFn(job.userId, job.data);
-        
+
+        logger.info(`Job ${jobId} worker completed. Attempting to update status to completed.`);
+
         // Transition to Completed
-        await updateJobStatus(jobId, 'completed', 100, result);
-        
+        try {
+            await updateJobStatus(jobId, 'completed', 100, result);
+        } catch (updateError) {
+            logger.error(`Job ${jobId}: Worker succeeded but status update to completed failed:`, updateError);
+            throw updateError;
+        }
+
     } catch (error) {
-        logger.error(`Job ${jobId} failed:`, error);
+        logger.error(`Job ${jobId} execution failed:`, error);
         // Transition to Failed
-        await updateJobStatus(jobId, 'failed', 0, null, error.message);
+        try {
+            await updateJobStatus(jobId, 'failed', 0, null, error.message);
+        } catch (statusError) {
+            logger.error(`Job ${jobId}: Critical failure - could not mark job as failed:`, statusError);
+        }
         throw error; // Rethrow so BullMQ knows it failed
     }
 }
@@ -97,18 +108,33 @@ async function processJob(jobId) {
  * Update job status (FSM transitions)
  */
 async function updateJobStatus(jobId, status, progress, result = null, error = null) {
+    logger.info(`JobService: Updating job ${jobId} status to ${status} (${progress}%)`);
+
     const updates = {
         status,
         progress,
         updatedAt: new Date()
     };
 
-    if (result) updates.result = result;
+    if (result) {
+        // Ensure result is a plain object and serialize any complex types safely
+        try {
+            updates.result = JSON.parse(JSON.stringify(result));
+        } catch (e) {
+            logger.warn(`Job ${jobId}: Could not serialize result, storing as string: ${e.message}`);
+            updates.result = { raw: String(result) };
+        }
+    }
+
     if (error) updates.error = error;
     if (status === 'completed' || status === 'failed') updates.completedAt = new Date();
 
     const updatedJob = await Job.findByIdAndUpdate(jobId, updates, { new: true });
-    
+
+    if (!updatedJob) {
+        throw new Error(`Could not find job ${jobId} to update status`);
+    }
+
     // Sync to Realtime Database for client-side notifications
     if (updatedJob.userId) {
         // Sync to Realtime Database
@@ -126,27 +152,31 @@ async function updateJobStatus(jobId, status, progress, result = null, error = n
         }
 
         // Emit via WebSocket
-        emitToUser(updatedJob.userId, `job:${status}`, {
-            id: jobId,
-            type: updatedJob.type,
-            status: updatedJob.status,
-            progress: updatedJob.progress,
-            result,
-            error
-        });
-        
-        emitToUser(updatedJob.userId, 'job:update', {
-            id: jobId,
-            type: updatedJob.type,
-            status: updatedJob.status,
-            progress: updatedJob.progress
-        });
+        try {
+            emitToUser(updatedJob.userId, `job:${status}`, {
+                id: jobId,
+                type: updatedJob.type,
+                status: updatedJob.status,
+                progress: updatedJob.progress,
+                result: updates.result,
+                error
+            });
+
+            emitToUser(updatedJob.userId, 'job:update', {
+                id: jobId,
+                type: updatedJob.type,
+                status: updatedJob.status,
+                progress: updatedJob.progress
+            });
+        } catch (emitError) {
+            logger.error(`Error emitting job update for ${jobId}:`, emitError);
+        }
     }
 
     // Notify
     jobEvents.emit('statusUpdate', updatedJob);
     logger.info(`Job ${jobId} status: ${status}`);
-    
+
     return updatedJob;
 }
 

@@ -2,6 +2,7 @@ import { Billboard } from '../models/index.js';
 import * as aiService from './aiService.js';
 import * as storageService from './storageService.js';
 import logger from '../utils/logger.js';
+import fetch from 'node-fetch';
 
 export async function createBillboard(data, file = null) {
     let imageUrl = data.imageUrl || '';
@@ -25,7 +26,7 @@ export async function createBillboard(data, file = null) {
         createdAt: new Date(),
         updatedAt: new Date()
     };
-    
+
     const billboard = await Billboard.create(payload);
     logger.info(`Billboard created: ${billboard.id}`);
     return billboard;
@@ -48,7 +49,7 @@ export async function updateBillboard(id, data, file = null) {
         ...data,
         updatedAt: new Date()
     };
-    
+
     if (imageUrl !== undefined) {
         payload.imageUrl = imageUrl;
     }
@@ -96,7 +97,7 @@ export async function generateImageForBillboard(id, prompt) {
     if (!imagePrompt.includes('No text')) {
         imagePrompt += ". DO NOT include any text, typography, or words in the image.";
     }
-    
+
     let aspectRatio = '16:9';
     if (billboard.layoutType === 'middle') aspectRatio = '4:3';
     else if (billboard.layoutType === 'mini') aspectRatio = '1:1';
@@ -104,9 +105,9 @@ export async function generateImageForBillboard(id, prompt) {
     logger.info(`Generating image for billboard ${id} with prompt: ${imagePrompt}`);
 
     // Match articleService call parameters (including imageSize: '2K')
-    const imageResult = await aiService.generateImage(imagePrompt, { 
+    const imageResult = await aiService.generateImage(imagePrompt, {
         aspectRatio,
-        imageSize: '2K' 
+        imageSize: '2K'
     });
 
     if (!imageResult.success || !imageResult.images || imageResult.images.length === 0) {
@@ -137,11 +138,11 @@ export async function generateImageForBillboard(id, prompt) {
     );
 
     // Update with new URL, bypassing the data payload to avoid type issues here
-    const updated = await Billboard.findByIdAndUpdate(id, { 
+    const updated = await Billboard.findByIdAndUpdate(id, {
         imageUrl: uploadResult.url,
         updatedAt: new Date()
     }, { new: true });
-    
+
     return updated;
 }
 

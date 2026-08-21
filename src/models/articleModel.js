@@ -81,7 +81,7 @@ const articleSchema = {
         type: String, // Required tier if access is 'subscription_platform' (e.g., 'premium', 'pro')
         default: null
     },
-    
+
     // Engagement Metrics (denormalized for simple sorting)
     views: {
         type: Number,
@@ -101,7 +101,11 @@ const articleSchema = {
         min: 0,
         max: 5
     },
-    
+    isFavorite: {
+        type: Boolean,
+        default: false
+    },
+
     createdAt: {
         type: Date,
         default: () => new Date()

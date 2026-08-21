@@ -78,11 +78,11 @@ class GeminiAIProvider extends BaseAIProvider {
             // Add advanced configuration for multimodal outputs
             if (options.responseModalities || options.aspectRatio || options.imageSize) {
                 config.config = config.config || {};
-                
+
                 if (options.responseModalities) {
                     config.config.responseModalities = options.responseModalities;
                 }
-                
+
                 if (options.aspectRatio || options.imageSize) {
                     config.config.imageConfig = {};
                     if (options.aspectRatio) config.config.imageConfig.aspectRatio = options.aspectRatio;
@@ -135,7 +135,7 @@ class GeminiAIProvider extends BaseAIProvider {
         const images = [];
         // Handle both raw response and enhanced response
         const candidates = response.candidates || response.response?.candidates;
-        
+
         if (candidates && candidates[0]?.content?.parts) {
             for (const part of candidates[0].content.parts) {
                 if (part.inlineData) {
@@ -192,11 +192,11 @@ class GeminiAIProvider extends BaseAIProvider {
             // Add advanced configuration for multimodal outputs
             if (options.responseModalities || options.aspectRatio || options.imageSize) {
                 config.config = config.config || {};
-                
+
                 if (options.responseModalities) {
                     config.config.responseModalities = options.responseModalities;
                 }
-                
+
                 if (options.aspectRatio || options.imageSize) {
                     config.config.imageConfig = {};
                     if (options.aspectRatio) config.config.imageConfig.aspectRatio = options.aspectRatio;
@@ -327,53 +327,65 @@ class GeminiAIProvider extends BaseAIProvider {
 
     /**
      * Generate an image using configured image model
-     * @param {string} prompt 
-     * @param {object} options 
+     * @param {string} prompt
+     * @param {object} options
      */
     async generateImage(prompt, options = {}) {
-        try {
-            const model = this._getModelName(options.model || "image");
-            
-            // Set up config for image generation
+        const model = this._getModelName(options.model || "image");
+
+        // Helper to build config
+        const buildConfig = (useImageConfig = true) => {
             const config = {
                 model: model,
                 contents: [{ role: 'user', parts: [{ text: prompt }] }],
             };
-            
-            // Add image specific configuration if provided
-            if (options.aspectRatio || options.imageSize) {
+
+            if (useImageConfig && (options.aspectRatio || options.imageSize)) {
                 config.config = {
                     responseModalities: ['TEXT', 'IMAGE'],
                     imageConfig: {}
                 };
-                
-                if (options.aspectRatio) {
-                    config.config.imageConfig.aspectRatio = options.aspectRatio;
-                }
-                
-                if (options.imageSize) {
-                    config.config.imageConfig.imageSize = options.imageSize;
+
+                if (options.aspectRatio) config.config.imageConfig.aspectRatio = options.aspectRatio;
+                if (options.imageSize) config.config.imageConfig.imageSize = options.imageSize;
+            }
+            return config;
+        };
+
+        try {
+            logger.info(`GeminiAIProvider: Generating image with model ${model}`, { prompt });
+
+            let config = buildConfig(true);
+            let response;
+
+            try {
+                response = await this.ai.models.generateContent(config);
+            } catch (innerError) {
+                const errorStr = String(innerError.message || innerError);
+                // Fallback: If model doesn't support aspect ratio/image size, try without them
+                if (errorStr.includes("Aspect ratio is not enabled") || errorStr.includes("INVALID_ARGUMENT") || errorStr.includes("imageConfig")) {
+                    logger.warn(`GeminiAIProvider: Model ${model} rejected imageConfig. Retrying with basic multimodal config.`);
+
+                    // Minimal config that still requests an image
+                    config = {
+                        model: model,
+                        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                        config: {
+                            responseModalities: ['IMAGE']
+                        }
+                    };
+
+                    response = await this.ai.models.generateContent(config);
+                } else {
+                    throw innerError;
                 }
             }
 
-            logger.log('xvf', config);
-            
-            const response = await this.ai.models.generateContent(config);
-
-            const images = [];
-            // Check if candidates and content exist
-            if (response.candidates && response.candidates[0]?.content?.parts) {
-                for (const part of response.candidates[0].content.parts) {
-                    if (part.inlineData) {
-                        images.push({
-                            inlineData: part.inlineData
-                        });
-                    }
-                }
-            }
+            const images = this._extractImages(response);
 
             // Check if we successfully generated images
             if (images.length > 0) {
+                logger.info(`GeminiAIProvider: Successfully generated ${images.length} images`);
                 return {
                     success: true,
                     images: images,
@@ -381,15 +393,17 @@ class GeminiAIProvider extends BaseAIProvider {
                     model: model
                 };
             } else {
+                logger.error('GeminiAIProvider: No images generated in response', response);
                 return {
                     success: false,
                     images: images,
                     provider: "gemini",
                     model: model,
-                    error: "No images generated"
+                    error: "No images generated. This could be due to safety filters or model limitations."
                 };
             }
         } catch (error) {
+            logger.error(`GeminiAIProvider: Image generation failed: ${error.message}`);
             throw new Error(`Gemini Image Generation Error: ${error.message}`);
         }
     }
