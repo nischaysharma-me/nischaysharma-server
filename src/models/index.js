@@ -14,6 +14,7 @@ import projectModel from './projectModel.js';
 import integrationModel from './integrationModel.js';
 import experienceModel from './experienceModel.js';
 import educationModel from './educationModel.js';
+import stackItemModel from './stackItemModel.js';
 
 // Export specific models
 export const User = userProfileModel;
@@ -31,6 +32,7 @@ export const Project = projectModel;
 export const Integration = integrationModel;
 export const Experience = experienceModel;
 export const Education = educationModel;
+export const StackItem = stackItemModel;
 
 // Helper to create simple models on the fly
 export const createModel = (collectionName, schema = null) => {

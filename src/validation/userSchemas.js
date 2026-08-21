@@ -28,7 +28,7 @@ export const updateUserSchema = Joi.object({
                     description: Joi.string().allow(''),
                     employmentType: Joi.string().allow('').optional()
                 })
-            ).min(1).required()
+            ).min(1).optional()
         })
     ).optional(),
     education: Joi.array().items(

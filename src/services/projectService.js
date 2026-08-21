@@ -46,8 +46,15 @@ async function updateProject(id, userId, updateData) {
  */
 async function deleteProject(id, userId) {
     const project = await Project.findById(id);
-    if (!project) throw new Error('Project not found');
-    if (project.userId !== userId) throw new Error('Unauthorized');
+    if (!project) {
+        logger.error(`ProjectService: Project with ID ${id} not found`);
+        throw new Error('Project not found');
+    }
+
+    if (project.userId !== userId) {
+        logger.error(`ProjectService: Unauthorized delete attempt. Project owner: ${project.userId}, Requestor: ${userId}`);
+        throw new Error('Unauthorized');
+    }
 
     return await Project.findByIdAndDelete(id);
 }

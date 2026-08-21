@@ -4,19 +4,19 @@ import * as storageService from './storageService.js';
 
 /**
  * Update user profile by UID (Creates if doesn't exist)
- * @param {string} uid 
- * @param {Object} updateData 
+ * @param {string} uid
+ * @param {Object} updateData
  */
 async function updateUser(uid, updateData) {
     let profile = await User.findOne({ uid });
-    
+
     if (profile && profile.status === 'deactivated') {
         throw new Error('Profile is deactivated');
     }
 
     // 1. Prevent updating sensitive system fields directly
     delete updateData.uid;
-    // Only admins can update role/status via this method if we wanted, 
+    // Only admins can update role/status via this method if we wanted,
     // but for now, let's keep it restricted.
     delete updateData.role;
     delete updateData.status;
@@ -35,11 +35,8 @@ async function updateUser(uid, updateData) {
         return profile;
     }
 
-    // 3. Handle Integrations and modular components (Redirect to separate collections)
+    // 3. Handle Integrations (Modular components are now allowed for legacy support/migration)
     delete updateData.integrations;
-    delete updateData.experience;
-    delete updateData.education;
-    delete updateData.projects;
 
     const updatedProfile = await User.findByIdAndUpdate(
         profile.id,
@@ -55,7 +52,7 @@ async function updateUser(uid, updateData) {
 
 /**
  * Get current user profile
- * @param {string} uid 
+ * @param {string} uid
  */
 async function getMe(uid) {
     let user = await getUser(uid);
@@ -64,11 +61,11 @@ async function getMe(uid) {
 
 /**
  * Get user profile by UID (field)
- * @param {string} uid 
+ * @param {string} uid
  */
 async function getUser(uid) {
     const profile = await User.findOne({ uid });
-    
+
     if (!profile || profile.status === 'deactivated') {
         return null;
     }
@@ -78,11 +75,11 @@ async function getUser(uid) {
 
 /**
  * Get user profile by Doc ID
- * @param {string} id 
+ * @param {string} id
  */
 async function getUserById(id) {
     const profile = await User.findById(id);
-    
+
     if (!profile || profile.status === 'deactivated') {
         return null;
     }
@@ -92,12 +89,12 @@ async function getUserById(id) {
 
 /**
  * Update user profile by Doc ID
- * @param {string} id 
- * @param {Object} updateData 
+ * @param {string} id
+ * @param {Object} updateData
  */
 async function updateUserById(id, updateData) {
     const profile = await User.findById(id);
-    
+
     if (!profile || profile.status === 'deactivated') {
         throw new Error('Profile not found');
     }
@@ -116,11 +113,11 @@ async function updateUserById(id, updateData) {
 
 /**
  * Deactivate user profile by UID
- * @param {string} uid 
+ * @param {string} uid
  */
 async function deleteUser(uid) {
     const profile = await User.findOne({ uid });
-    
+
     if (!profile || profile.status === 'deactivated') {
         throw new Error('Profile not found');
     }
@@ -139,11 +136,11 @@ async function deleteUser(uid) {
 
 /**
  * Delete user profile by Doc ID
- * @param {string} id 
+ * @param {string} id
  */
 async function deleteUserById(id) {
     const profile = await User.findById(id);
-    
+
     if (!profile || profile.status === 'deactivated') {
         throw new Error('Profile not found');
     }
@@ -162,11 +159,11 @@ async function deleteUserById(id) {
 
 /**
  * Update last active timestamp
- * @param {string} uid 
+ * @param {string} uid
  */
 async function updateLastActive(uid) {
     const profile = await User.findOne({ uid });
-    
+
     if (!profile || profile.status === 'deactivated') {
         return null;
     }
@@ -184,7 +181,7 @@ async function updateLastActive(uid) {
 
 /**
  * Check if a display name is taken
- * @param {string} displayName 
+ * @param {string} displayName
  */
 async function isDisplayNameTaken(displayName) {
     const users = await User.find({ displayName });
@@ -193,8 +190,8 @@ async function isDisplayNameTaken(displayName) {
 
 /**
  * List users with filters
- * @param {Object} query 
- * @param {Object} options 
+ * @param {Object} query
+ * @param {Object} options
  */
 async function listUsers(query = {}, options = {}) {
     return await User.find(
@@ -213,9 +210,9 @@ async function getPrimaryAdmin() {
 
 /**
  * Update user's profile picture
- * @param {string} uid 
- * @param {Buffer} fileBuffer 
- * @param {string} mimeType 
+ * @param {string} uid
+ * @param {Buffer} fileBuffer
+ * @param {string} mimeType
  */
 async function updateProfilePicture(uid, fileBuffer, mimeType) {
     const user = await getUser(uid);
@@ -235,9 +232,9 @@ async function updateProfilePicture(uid, fileBuffer, mimeType) {
 
 /**
  * Update user's cover photo
- * @param {string} uid 
- * @param {Buffer} fileBuffer 
- * @param {string} mimeType 
+ * @param {string} uid
+ * @param {Buffer} fileBuffer
+ * @param {string} mimeType
  */
 async function updateCoverPhoto(uid, fileBuffer, mimeType) {
     const user = await getUser(uid);
@@ -257,9 +254,9 @@ async function updateCoverPhoto(uid, fileBuffer, mimeType) {
 
 /**
  * Add an asset to the user's gallery
- * @param {string} uid 
- * @param {Buffer} fileBuffer 
- * @param {string} mimeType 
+ * @param {string} uid
+ * @param {Buffer} fileBuffer
+ * @param {string} mimeType
  * @param {Object} metadata { title, description, type: 'photo'|'video' }
  */
 async function addGalleryAsset(uid, fileBuffer, mimeType, metadata = {}) {
@@ -268,7 +265,7 @@ async function addGalleryAsset(uid, fileBuffer, mimeType, metadata = {}) {
 
     const fileType = metadata.type || (mimeType.startsWith('video') ? 'video' : 'photo');
     const filename = `gallery_${Date.now()}.${mimeType.split('/')[1]}`;
-    
+
     const uploadResult = await storageService.uploadUserAsset(
         user.uid,
         fileBuffer,
@@ -291,8 +288,8 @@ async function addGalleryAsset(uid, fileBuffer, mimeType, metadata = {}) {
 
 /**
  * Remove an asset from the user's gallery
- * @param {string} uid 
- * @param {string} assetUrl 
+ * @param {string} uid
+ * @param {string} assetUrl
  */
 async function deleteGalleryAsset(uid, assetUrl) {
     const user = await getUser(uid);
@@ -316,7 +313,7 @@ async function deleteGalleryAsset(uid, assetUrl) {
 
 /**
  * Populate featured items with full data (Article/Book)
- * @param {Object} user 
+ * @param {Object} user
  */
 async function populateFeaturedItems(user) {
     if (!user || !user.featured || !Array.isArray(user.featured)) {
@@ -337,7 +334,7 @@ async function populateFeaturedItems(user) {
                     data = user.projects.find(p => p.id === item.id || p.title === item.title);
                 }
             }
-            
+
             if (data) {
                 return {
                     ...item,
@@ -379,12 +376,12 @@ async function getHomeData() {
     // Merge legacy projects with collection projects (de-duplicate by title)
     const legacyProjects = admin.projects || [];
     const projectsMap = new Map();
-    
+
     // Add legacy ones first
     legacyProjects.forEach(p => {
         if (p && p.title) projectsMap.set(p.title.toLowerCase(), p);
     });
-    
+
     // Override with new collection data (more up to date)
     projectsCollection.forEach(p => {
         if (p && p.title) projectsMap.set(p.title.toLowerCase(), p);
@@ -429,9 +426,24 @@ async function getHomeData() {
         education: Array.from(eduMap.values())
     };
 
-    // Fallback: If no featured items, get latest published articles
+    // Fetch favorite articles as the primary source for articles in the parallax scroll
+    const favoriteArticles = await Article.find({ status: 'published', isFavorite: true }, { sort: { createdAt: -1 } });
+    const favoriteFeatured = favoriteArticles.map(article => ({
+        id: article.id,
+        type: 'article',
+        title: article.title,
+        data: article
+    }));
+
+    // Combine with non-article featured items from the admin profile
+    const manuallyFeatured = await populateFeaturedItems(admin);
+    const nonArticleFeatured = manuallyFeatured.filter(item => item.type !== 'article');
+
+    featured = [...favoriteFeatured, ...nonArticleFeatured];
+
+    // Fallback: If absolutely nothing is featured or favorited, show latest published articles
     if (featured.length === 0) {
-        const latestArticles = await Article.find({ status: 'published' }, { limit: 10, sort: { createdAt: -1 } });
+        const latestArticles = await Article.find({ status: 'published' }, { limit: 5, sort: { createdAt: -1 } });
         featured = latestArticles.map(article => ({
             id: article.id,
             type: 'article',

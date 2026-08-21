@@ -16,7 +16,8 @@ export const createArticleSchema = Joi.object({
     references: Joi.array().items(Joi.object({
         title: Joi.string(),
         url: Joi.string().uri()
-    }))
+    })),
+    isFavorite: Joi.boolean().default(false)
 });
 
 export const updateArticleSchema = Joi.object({
@@ -33,7 +34,8 @@ export const updateArticleSchema = Joi.object({
     references: Joi.array().items(Joi.object({
         title: Joi.string(),
         url: Joi.string().uri()
-    }))
+    })),
+    isFavorite: Joi.boolean()
 });
 
 export const addReviewSchema = Joi.object({
