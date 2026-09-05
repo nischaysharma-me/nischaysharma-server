@@ -34,7 +34,7 @@ async function createTemplate(authorId, data) {
 async function generateTemplate(authorId, description, category = 'blog-post') {
     logger.info(`Generating template from description: "${description}" (${category})`);
 
-    const prompt = generateTemplatePrompt(description);
+    const prompt = await generateTemplatePrompt(description);
     const aiResult = await aiService.generateText(prompt, {
         responseMimeType: 'application/json'
     });

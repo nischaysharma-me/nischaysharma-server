@@ -3,13 +3,8 @@ import * as aiService from './aiService.js';
 import { uploadUserAsset } from './storageService.js';
 import { addJob } from './jobService.js';
 import bookService from './bookService.js';
-import { imageGeneratorToolSchema } from '../tools/imageGenerator.js';
-import { 
-    draftChapterPageToolSchema, 
-    createChapterToolSchema,
-    updateBookPageToolSchema, 
-    deleteBookPageToolSchema 
-} from '../tools/bookTools.js';
+import { renderPrompt } from './promptLibraryService.js';
+import { buildConversationToolSchemas } from '../tools/promptedTools.js';
 
 /**
  * Service for handling AI conversation threads
@@ -122,20 +117,19 @@ class ConversationService {
             content: msg.content
         }));
 
-        // 3. Request the stream from AI Service
+        // 3. Load the current admin-managed system and tool prompts.
+        const [systemInstruction, toolSchemas] = await Promise.all([
+            renderPrompt('conversation.system'),
+            buildConversationToolSchemas()
+        ]);
+
+        // 4. Request the stream from AI Service
         const stream = aiService.chatStream(messagesForAI, {
-            tools: [{ 
-                functionDeclarations: [
-                    imageGeneratorToolSchema,
-                    draftChapterPageToolSchema,
-                    createChapterToolSchema,
-                    updateBookPageToolSchema,
-                    deleteBookPageToolSchema
-                ] 
-            }]
+            systemInstruction,
+            tools: [{ functionDeclarations: toolSchemas }]
         });
 
-        // 4. Yield chunks and aggregate full response
+        // 5. Yield chunks and aggregate full response
         let fullResponse = '';
         for await (const chunk of stream) {
             if (chunk && chunk.text) {

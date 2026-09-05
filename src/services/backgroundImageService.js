@@ -4,6 +4,7 @@ import * as articleService from './articleService.js';
 import logger from '../utils/logger.js';
 import { Article } from '../models/index.js';
 import fetch from 'node-fetch';
+import { renderPrompt } from './promptLibraryService.js';
 
 /**
  * Generate a new background image for an existing article
@@ -39,7 +40,7 @@ async function regenerateBackgroundImage(userId, data) {
         // Use custom prompt if provided, otherwise generate based on article title
         const bgPrompt = prompt && prompt.trim() !== ''
             ? prompt
-            : `A beautiful, professional cover image for an article titled "${article.title}". Ensure there is NO TEXT, typography, or words anywhere in the image.`;
+            : await renderPrompt('article.background.regenerate', { title: article.title });
 
         logger.info(`Generating background image with prompt: ${bgPrompt}`);
 

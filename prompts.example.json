@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "prompts": {
+    "article.tags": {
+      "name": "Article SEO tags",
+      "category": "Articles",
+      "description": "Generates the normalized tag list used for a new article.",
+      "variables": ["topic"],
+      "requiredVariables": ["topic"],
+      "template": "Generate exactly 20 specific, non-duplicative SEO and topic tags for an article about \"{{topic}}\". Prefer phrases a reader would actually search for. Return ONLY a valid JSON array of strings with no prose or markdown."
+    },
+    "article.structure.standard": {
+      "name": "Standard article structure",
+      "category": "Articles",
+      "description": "Plans a focused standard-length article before content generation.",
+      "variables": ["topic", "userInstructions"],
+      "requiredVariables": ["topic"],
+      "template": "You are a rigorous editor and subject-matter writer. Plan a useful, original article about \"{{topic}}\".\n\nUser instructions:\n{{userInstructions}}\n\nCreate 4-6 sections that form one coherent argument or learning path. Avoid generic filler, repeated ideas, fabricated facts, and vague headings. Make every contentBrief concrete enough that another writer can produce the section without guessing.\n\nReturn ONLY strict JSON with this shape:\n{\n  \"title\": \"Specific, compelling title\",\n  \"description\": \"Accurate summary under 200 characters\",\n  \"tags\": [\"tag1\", \"tag2\"],\n  \"sections\": [\n    {\n      \"heading\": \"Section heading\",\n      \"contentBrief\": \"Claims, examples, evidence, and takeaways this section must cover\",\n      \"imagePrompt\": \"Detailed visual prompt with no text in the image, or null\",\n      \"imageAspectRatio\": \"16:9\",\n      \"layout\": \"standard\"\n    }\n  ]\n}\n\nAllowed layouts: standard, two-column, hero, quote-block. Allowed aspect ratios: 1:1, 4:3, 16:9, 9:16. Use images only when they materially support the explanation."
+    },
+    "article.structure.deep-dive": {
+      "name": "Deep-dive article structure",
+      "category": "Articles",
+      "description": "Plans a detailed technical guide with substantial coverage.",
+      "variables": ["topic", "userInstructions"],
+      "requiredVariables": ["topic"],
+      "template": "You are a rigorous technical editor and subject-matter expert. Plan an authoritative deep-dive guide about \"{{topic}}\".\n\nUser instructions:\n{{userInstructions}}\n\nCreate 8-12 substantial sections in a deliberate learning sequence. Cover prerequisites, mechanisms, implementation, realistic examples, edge cases, trade-offs, performance implications, failure modes, and practical conclusions where relevant. Avoid generic filler, repeated ideas, fabricated facts, and vague headings.\n\nReturn ONLY strict JSON with this shape:\n{\n  \"title\": \"Specific, compelling title\",\n  \"description\": \"Accurate summary under 200 characters\",\n  \"tags\": [\"tag1\", \"tag2\"],\n  \"sections\": [\n    {\n      \"heading\": \"Section heading\",\n      \"contentBrief\": \"Claims, examples, evidence, implementation details, and takeaways this section must cover\",\n      \"imagePrompt\": \"Detailed visual prompt with no text in the image, or null\",\n      \"imageAspectRatio\": \"16:9\",\n      \"layout\": \"standard\"\n    }\n  ]\n}\n\nAllowed layouts: standard, two-column, hero, quote-block. Allowed aspect ratios: 1:1, 4:3, 16:9, 9:16. Use images only when they materially support the explanation."
+    },
+    "article.content.standard": {
+      "name": "Standard article content",
+      "category": "Articles",
+      "description": "Writes the final semantic HTML for a standard article.",
+      "variables": ["title", "description", "templateInstructions", "sectionsJson", "imageUrlsJson"],
+      "requiredVariables": ["title", "sectionsJson", "imageUrlsJson"],
+      "template": "You are a careful long-form web writer. Produce a polished article from the approved plan.\n\nTitle: {{title}}\nDescription: {{description}}\nEditorial instructions: {{templateInstructions}}\n\nPlanned sections:\n{{sectionsJson}}\n\nAvailable image URLs by section heading:\n{{imageUrlsJson}}\n\nRequirements:\n1. Return ONLY clean semantic HTML suitable inside an <article>; never return markdown, <html>, <head>, or <body>.\n2. Build a coherent narrative rather than isolated summaries. Each section should normally contain 150-300 useful words.\n3. Explain claims precisely, use concrete examples, and distinguish facts from recommendations. Do not invent statistics, quotations, sources, or personal experience.\n4. Use <section>, <h2>, <h3>, <p>, <ul>, <ol>, <pre>, <code>, <figure>, <figcaption>, and <blockquote> where appropriate.\n5. Use the supplied image only for its matching heading. Give it meaningful alt text. Never fabricate an image URL.\n6. For two-column layouts, use <div class=\"grid md:grid-cols-2 gap-8 items-center my-12\">. For hero layouts, use <div class=\"relative w-full h-[400px] mb-8 rounded-xl overflow-hidden\">.\n7. Use restrained Tailwind-compatible typography classes, but do not set background colors on article sections or containers.\n8. Avoid repetitive introductions, empty conclusions, clickbait, and phrases such as \"in today's fast-paced world\"."
+    },
+    "article.content.deep-dive": {
+      "name": "Deep-dive article content",
+      "category": "Articles",
+      "description": "Writes the final semantic HTML for a detailed technical guide.",
+      "variables": ["title", "description", "templateInstructions", "sectionsJson", "imageUrlsJson"],
+      "requiredVariables": ["title", "sectionsJson", "imageUrlsJson"],
+      "template": "You are a senior technical author. Produce an authoritative deep-dive from the approved plan.\n\nTitle: {{title}}\nDescription: {{description}}\nEditorial instructions: {{templateInstructions}}\n\nPlanned sections:\n{{sectionsJson}}\n\nAvailable image URLs by section heading:\n{{imageUrlsJson}}\n\nRequirements:\n1. Return ONLY clean semantic HTML suitable inside an <article>; never return markdown, <html>, <head>, or <body>.\n2. Follow a coherent learning sequence. Each substantial section should normally contain 300-500 words without padding.\n3. Explain mechanisms, assumptions, trade-offs, edge cases, performance, failure modes, and operational consequences where relevant.\n4. Include accurate code, configuration, equations, or worked examples when they improve understanding. Never invent statistics, quotations, benchmarks, APIs, or sources.\n5. Use <section>, <h2>, <h3>, <p>, <ul>, <ol>, <pre>, <code>, <figure>, <figcaption>, <table>, and <blockquote> appropriately.\n6. Use the supplied image only for its matching heading with meaningful alt text; never fabricate an image URL.\n7. For two-column layouts, use <div class=\"grid md:grid-cols-2 gap-8 items-center my-12\">. For hero layouts, use <div class=\"relative w-full h-[400px] mb-8 rounded-xl overflow-hidden\">.\n8. Use restrained Tailwind-compatible typography classes, but do not set background colors on article sections or containers.\n9. Avoid repetition, generic filler, clickbait, and unsupported certainty."
+    },
+    "article.template": {
+      "name": "Article template generator",
+      "category": "Articles",
+      "description": "Creates a reusable article template from an administrator description.",
+      "variables": ["description"],
+      "requiredVariables": ["description"],
+      "template": "You are an expert content strategist. Create a reusable article template from this description: \"{{description}}\".\n\nReturn ONLY strict JSON with keys name, description, category, aiInstructions, and structure. structure must be an array of 4-6 objects containing heading, contentBrief, imagePrompt, imageAspectRatio, and layout. Make headings generic enough to reuse while making contentBrief instructions concrete. Allowed layouts: standard, two-column, hero, quote-block. Allowed aspect ratios: 1:1, 4:3, 16:9, 9:16."
+    },
+    "article.cover.default": {
+      "name": "Article cover image",
+      "category": "Images",
+      "description": "Creates the default cover-image instruction for a generated article.",
+      "variables": ["topic"],
+      "requiredVariables": ["topic"],
+      "template": "A high-quality professional editorial cover image about {{topic}}. Use a clear focal point, refined composition, realistic lighting, and visual detail suited to a premium publication. Do not include text, typography, letters, numbers, logos, watermarks, or interface elements."
+    },
+    "article.cover.template": {
+      "name": "Template-based article cover image",
+      "category": "Images",
+      "description": "Creates a cover-image instruction when an article template is selected.",
+      "variables": ["topic"],
+      "requiredVariables": ["topic"],
+      "template": "A premium editorial cover image about {{topic}}, visually structured to suit a reusable article series. Use a clear focal point, refined composition, and realistic lighting. Do not include text, typography, letters, numbers, logos, watermarks, or interface elements."
+    },
+    "article.section-image": {
+      "name": "Article section image enhancement",
+      "category": "Images",
+      "description": "Adds topic context and visual safety requirements to a section image prompt.",
+      "variables": ["imagePrompt", "topic"],
+      "requiredVariables": ["imagePrompt", "topic"],
+      "template": "{{imagePrompt}}. The visual must clearly relate to {{topic}} and support the section's explanation. Do not include text, typography, letters, numbers, logos, watermarks, or interface elements."
+    },
+    "article.background.regenerate": {
+      "name": "Regenerated article background",
+      "category": "Images",
+      "description": "Default instruction used when an administrator regenerates an article background without a custom prompt.",
+      "variables": ["title"],
+      "requiredVariables": ["title"],
+      "template": "A beautiful professional editorial cover image for an article titled \"{{title}}\". Use a strong focal point and refined composition. Do not include text, typography, letters, numbers, logos, watermarks, or interface elements."
+    },
+    "image.no-text": {
+      "name": "No-text image constraint",
+      "category": "Images",
+      "description": "Applies the shared no-text safety constraint to administrator-supplied image prompts.",
+      "variables": ["imagePrompt"],
+      "requiredVariables": ["imagePrompt"],
+      "template": "{{imagePrompt}}. Do not include text, typography, letters, numbers, logos, watermarks, or interface elements."
+    },
+    "book.page.structure": {
+      "name": "Book page structure",
+      "category": "Books",
+      "description": "Plans a book page using its associated conversation history.",
+      "variables": ["topic", "history"],
+      "requiredVariables": ["topic", "history"],
+      "template": "You are an expert co-author and researcher. Plan a comprehensive book page about \"{{topic}}\" as a natural continuation of this conversation:\n\n{{history}}\n\nPreserve the user's distinctive reasoning while improving clarity and structure. Return ONLY strict JSON with a title and sections array. Every section must contain heading, contentBrief, imagePrompt or null, imageAspectRatio, and layout. Allowed layouts: standard, two-column, hero, quote-block. Allowed aspect ratios: 1:1, 4:3, 16:9, 9:16."
+    },
+    "book.page.content": {
+      "name": "Book page content",
+      "category": "Books",
+      "description": "Writes final semantic HTML for a generated book page.",
+      "variables": ["title", "history", "sectionsJson", "imageUrlsJson"],
+      "requiredVariables": ["title", "history", "sectionsJson", "imageUrlsJson"],
+      "template": "You are an expert co-author. Write a substantial book page that preserves the insights and reasoning in the conversation.\n\nTitle: {{title}}\nConversation:\n{{history}}\n\nPlanned sections:\n{{sectionsJson}}\n\nAvailable image URLs by heading:\n{{imageUrlsJson}}\n\nReturn ONLY semantic HTML suitable inside an <article>. Each substantial section should contain 250-500 useful words without padding. Use concrete examples and accurate explanations. Never invent facts, quotations, or sources. Use supplied images only for matching headings and never fabricate URLs. Tailwind-compatible typography classes are allowed, but do not set section or container background colors. Do not return markdown, <html>, <head>, or <body>."
+    },
+    "book.section-image": {
+      "name": "Book section image enhancement",
+      "category": "Images",
+      "description": "Adds book-topic context and no-text constraints to generated page images.",
+      "variables": ["imagePrompt", "topic"],
+      "requiredVariables": ["imagePrompt", "topic"],
+      "template": "{{imagePrompt}}. Make the visual directly relevant to {{topic}}. Do not include text, typography, letters, numbers, logos, watermarks, or interface elements."
+    },
+    "billboard.image.default": {
+      "name": "Billboard image",
+      "category": "Images",
+      "description": "Default visual instruction for a billboard without an administrator prompt.",
+      "variables": ["headline"],
+      "requiredVariables": ["headline"],
+      "template": "A high-quality newspaper-style editorial illustration for \"{{headline}}\" with a strong focal point and cinematic composition. Do not include text, typography, letters, numbers, logos, watermarks, or interface elements."
+    },
+    "stack.image.default": {
+      "name": "Stack item image",
+      "category": "Images",
+      "description": "Default visual instruction for a stack item without a custom description.",
+      "variables": ["title"],
+      "requiredVariables": ["title"],
+      "template": "A premium three-dimensional editorial graphic representing {{title}}, with tactile materials, refined lighting, depth, and a clean focal composition. Do not include text, typography, letters, numbers, logos, watermarks, or interface elements."
+    },
+    "social.linkedin": {
+      "name": "LinkedIn post",
+      "category": "Social",
+      "description": "Writes a LinkedIn post for a newly published item.",
+      "variables": ["type", "title", "description"],
+      "requiredVariables": ["type", "title"],
+      "template": "Write a professional, engaging LinkedIn post announcing a new {{type}}.\n\nTitle: {{title}}\nDescription: {{description}}\n\nOpen with a specific hook, explain the reader value, use a professional conversational voice, and include 2-3 genuinely relevant hashtags. Keep the complete post under 1,000 characters. Do not include a link. Return only the post text."
+    },
+    "conversation.system": {
+      "name": "Conversation system instruction",
+      "category": "Conversations",
+      "description": "Guides the assistant used in threaded writing conversations.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "You are a thoughtful research and writing collaborator. Help the user develop clear, accurate, original ideas. Ask focused questions when essential context is missing, distinguish established facts from suggestions, and avoid fabricated sources or certainty. Use available tools only when they directly support the user's request. Do not create, update, or delete book content unless the user clearly requests that action."
+    },
+    "tool.generate-image.description": {
+      "name": "Generate-image tool description",
+      "category": "Tools",
+      "description": "Explains when the conversation model should invoke image generation.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "Generates an image from a detailed visual prompt. Use it only when the user asks for an image or an image is necessary for the requested content."
+    },
+    "tool.generate-image.prompt": {
+      "name": "Generate-image prompt parameter",
+      "category": "Tools",
+      "description": "Describes the image prompt argument to the conversation model.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "A detailed visual description including subject, composition, lighting, style, and constraints."
+    },
+    "tool.draft-page.description": {
+      "name": "Draft-page tool description",
+      "category": "Tools",
+      "description": "Explains when the conversation model may draft a book page.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "Drafts a new page for the attached book. Use only when the user explicitly asks to draft, write, or turn the conversation into book content."
+    },
+    "tool.draft-page.chapter-id": {
+      "name": "Draft-page chapter parameter",
+      "category": "Tools",
+      "description": "Describes the optional target chapter argument.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "The target chapter ID. It may be omitted for a paper or a book with only one chapter."
+    },
+    "tool.draft-page.brief": {
+      "name": "Draft-page brief parameter",
+      "category": "Tools",
+      "description": "Describes the page brief argument.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "A focused brief describing what the page should cover based on the conversation."
+    },
+    "tool.create-chapter.description": {
+      "name": "Create-chapter tool description",
+      "category": "Tools",
+      "description": "Explains when the model may create a chapter.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "Creates a named chapter in the attached book. Use only when the user asks to start or add a chapter."
+    },
+    "tool.create-chapter.title": {
+      "name": "Create-chapter title parameter",
+      "category": "Tools",
+      "description": "Describes the chapter title argument.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "The concise title of the new chapter."
+    },
+    "tool.update-page.description": {
+      "name": "Update-page tool description",
+      "category": "Tools",
+      "description": "Explains when the model may update a book page.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "Updates an existing book page. Use only when the user explicitly asks to refine, expand, or correct that page."
+    },
+    "tool.update-page.page-id": {
+      "name": "Update-page ID parameter",
+      "category": "Tools",
+      "description": "Describes the page identifier argument.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "The ID of the existing page to update."
+    },
+    "tool.update-page.content": {
+      "name": "Update-page content parameter",
+      "category": "Tools",
+      "description": "Describes the replacement content argument.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "The complete updated content for the page."
+    },
+    "tool.delete-page.description": {
+      "name": "Delete-page tool description",
+      "category": "Tools",
+      "description": "Explains when the model may delete a book page.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "Deletes an existing book page. Use only when the user explicitly asks to remove that page."
+    },
+    "tool.delete-page.page-id": {
+      "name": "Delete-page ID parameter",
+      "category": "Tools",
+      "description": "Describes the page identifier argument for deletion.",
+      "variables": [],
+      "requiredVariables": [],
+      "template": "The ID of the existing page to delete."
+    }
+  }
+}

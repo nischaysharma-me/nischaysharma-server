@@ -3,6 +3,7 @@ import * as aiService from './aiService.js';
 import * as storageService from './storageService.js';
 import logger from '../utils/logger.js';
 import fetch from 'node-fetch';
+import { renderPrompt } from './promptLibraryService.js';
 
 export async function createBillboard(data, file = null) {
     let imageUrl = data.imageUrl || '';
@@ -93,10 +94,10 @@ export async function generateImageForBillboard(id, prompt) {
     if (!billboard) throw new Error('Billboard not found');
 
     // Use the same prompt style as articleService
-    let imagePrompt = prompt || billboard.imagePrompt || `A high quality newspaper illustration for ${billboard.headline}`;
-    if (!imagePrompt.includes('No text')) {
-        imagePrompt += ". DO NOT include any text, typography, or words in the image.";
-    }
+    const basePrompt = prompt || billboard.imagePrompt || await renderPrompt('billboard.image.default', {
+        headline: billboard.headline
+    });
+    const imagePrompt = await renderPrompt('image.no-text', { imagePrompt: basePrompt });
 
     let aspectRatio = '16:9';
     if (billboard.layoutType === 'middle') aspectRatio = '4:3';

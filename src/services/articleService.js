@@ -6,6 +6,7 @@ import * as templateService from './articleTemplateService.js';
 import { generateStructurePrompt, generateContentPrompt } from '../prompts/articlePrompts.js';
 import { minifyHTML } from '../utils/htmlMinifier.js';
 import fetch from 'node-fetch';
+import { renderPrompt } from './promptLibraryService.js';
 
 /**
  * Generate a background image for an article
@@ -17,9 +18,10 @@ import fetch from 'node-fetch';
 async function generateBackgroundImage(authorId, topic, templateId = null) {
     let backgroundImageUrl = '';
     try {
-        const bgPrompt = templateId
-            ? `A beautiful cover image for an article about ${topic} based on a template. Make it look like a high-quality cover image with NO TEXT or words.`
-            : `A high-quality, professional cover image for an article about ${topic}. Ensure there is NO TEXT, typography, or words anywhere in the image.`;
+        const bgPrompt = await renderPrompt(
+            templateId ? 'article.cover.template' : 'article.cover.default',
+            { topic }
+        );
 
         const bgResult = await aiService.generateImage(bgPrompt, {
             aspectRatio: '16:9',
@@ -97,7 +99,8 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
     // 0. Auto-generate at least 20 tags
     let generatedTags = [];
     try {
-        const tagsResult = await aiService.generateText(`Generate exactly 20 highly relevant SEO and topic tags for an article about "${topic}". Return ONLY a JSON array of strings.`, {
+        const tagsPrompt = await renderPrompt('article.tags', { topic });
+        const tagsResult = await aiService.generateText(tagsPrompt, {
             responseMimeType: 'application/json'
         });
         generatedTags = JSON.parse(tagsResult.text);
@@ -123,7 +126,8 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
         await templateService.incrementUsage(templateId);
     } else {
         // 1. Generate Structure from scratch
-        const structureResult = await aiService.generateText(generateStructurePrompt(topic, depth, instructions), {
+        const structurePrompt = await generateStructurePrompt(topic, depth, instructions);
+        const structureResult = await aiService.generateText(structurePrompt, {
             responseMimeType: 'application/json'
         });
 
@@ -148,10 +152,10 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
     for (const section of structure.sections) {
         if (section.imagePrompt) {
             try {
-                // If using template, imagePrompt might be generic. AI should still handle it.
-                // Optionally, we could enhance the prompt by combining topic + template prompt.
-                let enhancedPrompt = templateId ? `${section.imagePrompt} related to ${topic}` : section.imagePrompt;
-                enhancedPrompt += ". DO NOT include any text, typography, or words in the image.";
+                const enhancedPrompt = await renderPrompt('article.section-image', {
+                    imagePrompt: section.imagePrompt,
+                    topic
+                });
 
                 const imageResult = await aiService.generateImage(enhancedPrompt, {
                     aspectRatio: section.imageAspectRatio || '16:9'
@@ -196,10 +200,8 @@ async function generateArticleContent(authorId, topic, depth = 'standard', instr
     // Combine custom instructions with template instructions
     const finalInstructions = `${templateInstructions}\n${instructions}`.trim();
 
-    const contentResult = await aiService.generateText(
-        generateContentPrompt(structure, imageUrls, depth, finalInstructions),
-        { model: 'pro' }
-    );
+    const contentPrompt = await generateContentPrompt(structure, imageUrls, depth, finalInstructions);
+    const contentResult = await aiService.generateText(contentPrompt, { model: 'pro' });
     const content = contentResult.text;
 
     // 4. Save Article
