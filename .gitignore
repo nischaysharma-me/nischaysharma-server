@@ -7,3 +7,4 @@ build
 .gemini
 
 taughtcode-firebase-adminsdk-fbsvc.json
+/prompts.json

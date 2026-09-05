@@ -11,6 +11,7 @@ import projectRoutes from './projects.js';
 import experienceRoutes from './experience.js';
 import educationRoutes from './education.js';
 import stackRoutes from './stack.js';
+import promptRoutes from './prompts.js';
 import * as docsController from '../controllers/docsController.js';
 
 const router = express.Router();
@@ -56,6 +57,7 @@ router.use('/education', educationRoutes);
 
 // Stack Menu Routes
 router.use('/stack', stackRoutes);
+router.use('/prompts', promptRoutes);
 
 // Documentation API Routes
 router.get('/docs/navigation', docsController.listDocs);

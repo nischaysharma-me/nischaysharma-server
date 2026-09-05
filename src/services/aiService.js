@@ -1,5 +1,6 @@
 import { AIProvider } from "../providers/ai/registry.js";
 import logger from "../utils/logger.js";
+import { renderPrompt } from './promptLibraryService.js';
 
 const ai = AIProvider(process.env.AI_PROVIDER || "gemini");
 
@@ -48,20 +49,11 @@ async function generateImage(prompt, options = {}) {
 async function generateSocialPost(content) {
     const { title, description, type = 'article' } = content;
     
-    const prompt = `Write a professional, engaging LinkedIn post for a new ${type} I just published.
-    
-    Title: ${title}
-    Description: ${description}
-    
-    Requirements:
-    1. Start with an attention-grabbing hook.
-    2. Summarize the key value proposition.
-    3. Use a professional yet conversational tone.
-    4. Include 2-3 relevant hashtags.
-    5. Keep it under 1000 characters.
-    6. DO NOT include links (I will add the link manually).
-    
-    Output only the post text.`;
+    const prompt = await renderPrompt('social.linkedin', {
+        title,
+        description: description || '',
+        type
+    });
 
     return await generateText(prompt, { temperature: 0.7 });
 }

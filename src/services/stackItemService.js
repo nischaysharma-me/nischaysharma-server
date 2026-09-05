@@ -3,15 +3,16 @@ import * as aiService from './aiService.js';
 import * as storageService from './storageService.js';
 import logger from '../utils/logger.js';
 import fetch from 'node-fetch';
+import { renderPrompt } from './promptLibraryService.js';
 
 export async function generateImageForStackItem(id, prompt) {
     const item = await StackItem.findById(id);
     if (!item) throw new Error('Stack item not found');
 
-    let imagePrompt = prompt || item.description || `A beautiful, premium 3D graphic for ${item.title}`;
-    if (!imagePrompt.includes('No text')) {
-        imagePrompt += ". DO NOT include any text, typography, or words in the image.";
-    }
+    const basePrompt = prompt || item.description || await renderPrompt('stack.image.default', {
+        title: item.title
+    });
+    const imagePrompt = await renderPrompt('image.no-text', { imagePrompt: basePrompt });
 
     logger.info(`Generating image for stack item ${id} with prompt: ${imagePrompt}`);
 

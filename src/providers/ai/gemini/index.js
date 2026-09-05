@@ -101,6 +101,11 @@ class GeminiAIProvider extends BaseAIProvider {
                 config.config.responseSchema = options.responseJsonSchema;
             }
 
+            if (options.systemInstruction) {
+                config.config = config.config || {};
+                config.config.systemInstruction = options.systemInstruction;
+            }
+
             // Add tools if enabled
             if (useTools || options.tools) {
                 config.config = config.config || {};
@@ -189,6 +194,11 @@ class GeminiAIProvider extends BaseAIProvider {
                 },
             };
 
+            if (options.systemInstruction) {
+                config.config = config.config || {};
+                config.config.systemInstruction = options.systemInstruction;
+            }
+
             // Add advanced configuration for multimodal outputs
             if (options.responseModalities || options.aspectRatio || options.imageSize) {
                 config.config = config.config || {};
@@ -270,6 +280,11 @@ class GeminiAIProvider extends BaseAIProvider {
                     topK: options.topK || this.config.generationConfig.topK,
                 },
             };
+
+            if (options.systemInstruction) {
+                config.config = config.config || {};
+                config.config.systemInstruction = options.systemInstruction;
+            }
 
             // Add tools if enabled
             if (useTools || options.tools) {

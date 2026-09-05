@@ -4,6 +4,7 @@ import * as storageService from './storageService.js';
 import { Conversation } from '../models/index.js';
 import bookService from './bookService.js';
 import { generatePageStructurePrompt, generatePageContentPrompt } from '../prompts/bookPrompts.js';
+import { renderPrompt } from './promptLibraryService.js';
 
 /**
  * Generate a book page in the background
@@ -25,7 +26,8 @@ async function generateBookPage(userId, bookId, chapterId, threadId, topic) {
         .join('\n\n');
 
     // 2. Generate Structure
-    const structureResult = await aiService.generateText(generatePageStructurePrompt(topic, historyText), {
+    const structurePrompt = await generatePageStructurePrompt(topic, historyText);
+    const structureResult = await aiService.generateText(structurePrompt, {
         responseMimeType: 'application/json'
     });
     
@@ -47,7 +49,10 @@ async function generateBookPage(userId, bookId, chapterId, threadId, topic) {
     for (const section of structure.sections) {
         if (section.imagePrompt) {
             try {
-                const enhancedPrompt = `${section.imagePrompt}. NO TEXT. Related to ${topic}.`;
+                const enhancedPrompt = await renderPrompt('book.section-image', {
+                    imagePrompt: section.imagePrompt,
+                    topic
+                });
                 const imageResult = await aiService.generateImage(enhancedPrompt, {
                     aspectRatio: section.imageAspectRatio || '16:9'
                 });
@@ -82,10 +87,8 @@ async function generateBookPage(userId, bookId, chapterId, threadId, topic) {
     }
 
     // 4. Generate Full Content
-    const contentResult = await aiService.generateText(
-        generatePageContentPrompt(structure, imageUrls, historyText),
-        { model: 'pro' }
-    );
+    const contentPrompt = await generatePageContentPrompt(structure, imageUrls, historyText);
+    const contentResult = await aiService.generateText(contentPrompt, { model: 'pro' });
     const content = contentResult.text;
 
     // 5. Save Page to Chapter
