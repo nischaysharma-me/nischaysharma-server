@@ -2,9 +2,9 @@ import Joi from 'joi';
 import { ARTICLE_TEMPLATE_CATEGORY_LIST } from '../config/articleTemplates.js';
 
 export const createArticleSchema = Joi.object({
-    title: Joi.string().required().min(3).max(200),
-    description: Joi.string().max(500),
-    content: Joi.string().required(),
+    title: Joi.string().trim().required().min(3).max(200),
+    description: Joi.string().trim().max(500).allow(''),
+    content: Joi.string().trim().min(1).required(),
     tags: Joi.array().items(Joi.string()).min(20),
     status: Joi.string().valid('draft', 'published').default('draft'),
     access: Joi.string().valid('free', 'paid_single', 'subscription_author', 'subscription_platform').default('free'),
@@ -21,9 +21,9 @@ export const createArticleSchema = Joi.object({
 });
 
 export const updateArticleSchema = Joi.object({
-    title: Joi.string().min(3).max(200),
-    description: Joi.string().max(500),
-    content: Joi.string(),
+    title: Joi.string().trim().min(3).max(200),
+    description: Joi.string().trim().max(500).allow(''),
+    content: Joi.string().trim().min(1),
     tags: Joi.array().items(Joi.string()).min(20),
     status: Joi.string().valid('draft', 'published', 'archived'),
     access: Joi.string().valid('free', 'paid_single', 'subscription_author', 'subscription_platform'),
