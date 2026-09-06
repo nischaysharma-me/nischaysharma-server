@@ -20,7 +20,7 @@ const LINKEDIN_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif']);
 const socialImageSchema = Joi.object({
     title: Joi.string().trim().min(1).max(200).required(),
     description: Joi.string().trim().max(5000).allow('').optional(),
-    type: Joi.string().valid('article', 'book').default('article'),
+    type: Joi.string().valid('article', 'book', 'post').default('article'),
     purpose: Joi.string().valid('post', 'slide').default('post'),
     slideHeadline: Joi.string().trim().max(90).allow('').optional(),
     slideBody: Joi.string().trim().max(420).allow('').optional(),
