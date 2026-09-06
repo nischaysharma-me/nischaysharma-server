@@ -14,6 +14,8 @@ function sendError(res, error, fallbackMessage) {
 export async function listPrompts(req, res) {
     try {
         const prompts = await promptLibrary.listPrompts();
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        res.set('Pragma', 'no-cache');
         res.json({ success: true, data: prompts });
     } catch (error) {
         logger.error('PromptController: Unable to list prompts', error);
