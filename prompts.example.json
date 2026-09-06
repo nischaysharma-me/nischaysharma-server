@@ -139,23 +139,23 @@
     },
     "social.linkedin": {
       "name": "LinkedIn post",
-      "category": "Social",
+      "category": "LinkedIn",
       "description": "Writes a LinkedIn post for a newly published item.",
       "variables": ["type", "title", "description"],
       "requiredVariables": ["type", "title"],
       "template": "Write a professional, engaging LinkedIn post announcing a new {{type}}.\n\nTitle: {{title}}\nDescription: {{description}}\n\nOpen with a specific hook, explain the reader value, use a professional conversational voice, and include 2-3 genuinely relevant hashtags. Keep the complete post under 1,000 characters. Do not include a link. Return only the post text."
     },
     "social.linkedin.source-context": {
-      "name": "LinkedIn article source context",
-      "category": "Social",
-      "description": "Grounds LinkedIn copy, slides, and visuals in the source article instead of relying only on metadata.",
+      "name": "LinkedIn source content grounding",
+      "category": "LinkedIn",
+      "description": "Grounds LinkedIn copy, slides, and visuals in the source article, book, or post instead of relying only on metadata.",
       "variables": ["sourceContent"],
       "requiredVariables": ["sourceContent"],
       "template": "Use the following source material as the factual and thematic ground truth. Keep the post, slide sequence, and visual concepts aligned with its actual ideas. Do not introduce claims or imagery that conflict with it.\n\nSOURCE MATERIAL:\n{{sourceContent}}"
     },
     "social.linkedin.rich": {
       "name": "LinkedIn rich-media post plan",
-      "category": "Social",
+      "category": "LinkedIn",
       "description": "Creates structured copy and editable slides for LinkedIn media posts.",
       "variables": ["type", "title", "description", "format"],
       "requiredVariables": ["type", "title", "format"],
@@ -163,7 +163,7 @@
     },
     "social.linkedin.image": {
       "name": "LinkedIn post image",
-      "category": "Social",
+      "category": "LinkedIn",
       "description": "Creates the portrait visual used by an AI-generated LinkedIn image post.",
       "variables": ["type", "title", "description"],
       "requiredVariables": ["type", "title"],
@@ -171,7 +171,7 @@
     },
     "social.linkedin.slide-image": {
       "name": "LinkedIn slide image",
-      "category": "Social",
+      "category": "LinkedIn",
       "description": "Creates an optional landscape illustration for one LinkedIn carousel slide.",
       "variables": ["type", "title", "description", "slideHeadline", "slideBody", "imagePrompt"],
       "requiredVariables": ["type", "title", "slideHeadline"],
