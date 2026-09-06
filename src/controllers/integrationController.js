@@ -2,6 +2,18 @@ import * as integrationService from '../services/integrationService.js';
 import * as userService from '../services/userProfileService.js';
 import * as aiService from '../services/aiService.js';
 import logger from '../utils/logger.js';
+import Joi from 'joi';
+import { parseSlides, renderSlidesPdf } from '../services/socialPostService.js';
+
+const socialPostSchema = Joi.object({
+    commentary: Joi.string().trim().min(1).max(3000).required(),
+    format: Joi.string().valid('text', 'image', 'document').required(),
+    title: Joi.string().trim().min(1).max(200).required(),
+    url: Joi.string().uri({ scheme: ['http', 'https'] }).allow('').optional(),
+    altText: Joi.string().trim().max(300).allow('').optional(),
+    slides: Joi.string().allow('').optional()
+});
+const LINKEDIN_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif']);
 
 /**
  * Get user Doc ID from request context
@@ -122,18 +134,72 @@ export async function initiateAuth(req, res) {
  */
 export async function generateSocialPost(req, res) {
     try {
-        const { title, description, type } = req.body;
+        const { title, description, type, format } = req.body;
         
         if (!title) {
             return res.status(400).json({ success: false, error: 'Title is required' });
         }
 
-        const post = await aiService.generateSocialPost({ title, description, type });
+        const post = await aiService.generateSocialPost({ title, description, type, format });
         
         res.json({ success: true, data: post });
     } catch (error) {
         logger.error('IntegrationController: AI Post Generation Error:', error);
         res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Render optional slide media and publish a rich LinkedIn post.
+ */
+export async function publishLinkedInPost(req, res) {
+    try {
+        const { error, value } = socialPostSchema.validate(req.body, {
+            abortEarly: false,
+            stripUnknown: true
+        });
+        if (error) {
+            return res.status(400).json({
+                success: false,
+                error: error.details.map((detail) => detail.message).join(', ')
+            });
+        }
+
+        const userId = await getUserId(req);
+        if (!userId) throw new Error('User profile not found');
+
+        let mediaBuffer = null;
+        let mediaType = null;
+        if (value.format === 'image') {
+            if (!req.file) {
+                return res.status(400).json({ success: false, error: 'Choose an image before publishing' });
+            }
+            if (!LINKEDIN_IMAGE_TYPES.has(req.file.mimetype)) {
+                return res.status(400).json({ success: false, error: 'LinkedIn image posts support JPG, PNG, and GIF files' });
+            }
+            mediaBuffer = req.file.buffer;
+            mediaType = req.file.mimetype;
+        } else if (value.format === 'document') {
+            const slides = parseSlides(value.slides);
+            mediaBuffer = renderSlidesPdf(slides);
+            mediaType = 'application/pdf';
+        }
+
+        const data = await integrationService.syncIntegration(userId, 'linkedin', {
+            commentary: value.commentary,
+            text: value.commentary,
+            format: value.format,
+            title: value.title,
+            url: value.url || undefined,
+            altText: value.altText || undefined,
+            mediaBuffer,
+            mediaType
+        });
+
+        res.json({ success: true, data });
+    } catch (error) {
+        logger.error('IntegrationController: LinkedIn publish error:', error);
+        res.status(400).json({ success: false, error: error.message });
     }
 }
 

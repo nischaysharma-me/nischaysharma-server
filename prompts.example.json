@@ -137,6 +137,14 @@
       "requiredVariables": ["type", "title"],
       "template": "Write a professional, engaging LinkedIn post announcing a new {{type}}.\n\nTitle: {{title}}\nDescription: {{description}}\n\nOpen with a specific hook, explain the reader value, use a professional conversational voice, and include 2-3 genuinely relevant hashtags. Keep the complete post under 1,000 characters. Do not include a link. Return only the post text."
     },
+    "social.linkedin.rich": {
+      "name": "LinkedIn rich-media post plan",
+      "category": "Social",
+      "description": "Creates structured copy and editable slides for LinkedIn media posts.",
+      "variables": ["type", "title", "description", "format"],
+      "requiredVariables": ["type", "title", "format"],
+      "template": "Create a professional LinkedIn post plan for a newly published {{type}}.\n\nTitle: {{title}}\nDescription: {{description}}\nRequested format: {{format}}\n\nReturn ONLY strict JSON with this shape:\n{\n  \"format\": \"{{format}}\",\n  \"commentary\": \"Complete LinkedIn caption under 1,000 characters\",\n  \"imageAltText\": \"Meaningful description when the format is image\",\n  \"hashtags\": [\"RelevantTag\"],\n  \"slides\": [\n    {\n      \"headline\": \"Short slide headline, maximum 8 words\",\n      \"body\": \"One focused idea in 15-40 words\",\n      \"altText\": \"Accessible description of the slide\"\n    }\n  ]\n}\n\nOpen the commentary with a specific hook, explain concrete reader value, end with a natural call to action, and include 2-3 genuinely relevant hashtags. Do not include a link. For document format, create 5-8 slides that form a coherent sequence: strong cover, focused insights, and a closing takeaway. For text or image format, return an empty slides array. Avoid generic motivational language, fabricated claims, and repeated ideas."
+    },
     "conversation.system": {
       "name": "Conversation system instruction",
       "category": "Conversations",

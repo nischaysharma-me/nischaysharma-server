@@ -1,6 +1,7 @@
 import { AIProvider } from "../providers/ai/registry.js";
 import logger from "../utils/logger.js";
 import { renderPrompt } from './promptLibraryService.js';
+import { normalizeSocialPostPlan } from './socialPostService.js';
 
 const ai = AIProvider(process.env.AI_PROVIDER || "gemini");
 
@@ -47,15 +48,17 @@ async function generateImage(prompt, options = {}) {
  * @param {Object} content - { title, description, type }
  */
 async function generateSocialPost(content) {
-    const { title, description, type = 'article' } = content;
+    const { title, description, type = 'article', format = 'text' } = content;
     
-    const prompt = await renderPrompt('social.linkedin', {
+    const prompt = await renderPrompt('social.linkedin.rich', {
         title,
         description: description || '',
-        type
+        type,
+        format
     });
 
-    return await generateText(prompt, { temperature: 0.7 });
+    const result = await generateText(prompt, { temperature: 0.7 });
+    return normalizeSocialPostPlan(result, { title, description, type, format });
 }
 
 export { generateText, chat, chatStream, generateImage, generateSocialPost };
