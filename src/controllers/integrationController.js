@@ -13,7 +13,8 @@ const socialPostSchema = Joi.object({
     title: Joi.string().trim().min(1).max(200).required(),
     url: Joi.string().uri({ scheme: ['http', 'https'] }).allow('').optional(),
     altText: Joi.string().trim().max(300).allow('').optional(),
-    slides: Joi.string().allow('').optional()
+    slides: Joi.string().allow('').optional(),
+    generatedImageUrl: Joi.string().uri({ scheme: ['https'] }).allow('').optional()
 });
 const LINKEDIN_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif']);
 const socialImageSchema = Joi.object({
@@ -25,6 +26,20 @@ const socialImageSchema = Joi.object({
     slideBody: Joi.string().trim().max(420).allow('').optional(),
     imagePrompt: Joi.string().trim().max(1000).allow('').optional()
 });
+
+async function downloadGeneratedLinkedInImage(url) {
+    const parsed = new URL(url);
+    const bucketPrefix = '/nischaysharma-com.firebasestorage.app/users/';
+    if (parsed.protocol !== 'https:' || parsed.hostname !== 'storage.googleapis.com' || !parsed.pathname.startsWith(bucketPrefix)) {
+        throw new Error('Generated image URL is not from the configured storage bucket');
+    }
+
+    const response = await fetch(parsed.toString());
+    if (!response.ok) throw new Error('The generated image could not be downloaded');
+    const mimeType = response.headers.get('content-type') || 'image/jpeg';
+    if (!LINKEDIN_IMAGE_TYPES.has(mimeType)) throw new Error('Generated image has an unsupported format');
+    return { buffer: Buffer.from(await response.arrayBuffer()), mimeType };
+}
 
 /**
  * Get user Doc ID from request context
@@ -237,14 +252,20 @@ export async function publishLinkedInPost(req, res) {
         let mediaType = null;
         if (value.format === 'image') {
             const imageFile = req.files?.media?.[0];
-            if (!imageFile) {
+            if (!imageFile && !value.generatedImageUrl) {
                 return res.status(400).json({ success: false, error: 'Choose an image before publishing' });
             }
-            if (!LINKEDIN_IMAGE_TYPES.has(imageFile.mimetype)) {
+            if (imageFile && !LINKEDIN_IMAGE_TYPES.has(imageFile.mimetype)) {
                 return res.status(400).json({ success: false, error: 'LinkedIn image posts support JPG, PNG, and GIF files' });
             }
-            mediaBuffer = imageFile.buffer;
-            mediaType = imageFile.mimetype;
+            if (imageFile) {
+                mediaBuffer = imageFile.buffer;
+                mediaType = imageFile.mimetype;
+            } else {
+                const generatedImage = await downloadGeneratedLinkedInImage(value.generatedImageUrl);
+                mediaBuffer = generatedImage.buffer;
+                mediaType = generatedImage.mimeType;
+            }
         } else if (value.format === 'document') {
             const slides = parseSlides(value.slides);
             const imageIndexes = parseSlides(req.body.slideImageIndexes || '[]');
@@ -258,6 +279,12 @@ export async function publishLinkedInPost(req, res) {
                     slideImages[slideIndex] = file.buffer;
                 }
             });
+            await Promise.all(slides.map(async (slide, slideIndex) => {
+                if (!slideImages[slideIndex] && slide?.imageUrl) {
+                    const generatedImage = await downloadGeneratedLinkedInImage(slide.imageUrl);
+                    slideImages[slideIndex] = generatedImage.buffer;
+                }
+            }));
             mediaBuffer = renderSlidesPdf(slides, slideImages);
             mediaType = 'application/pdf';
         }
