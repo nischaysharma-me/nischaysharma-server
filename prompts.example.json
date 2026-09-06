@@ -143,7 +143,7 @@
       "description": "Creates structured copy and editable slides for LinkedIn media posts.",
       "variables": ["type", "title", "description", "format"],
       "requiredVariables": ["type", "title", "format"],
-      "template": "Create a professional LinkedIn post plan for a newly published {{type}}.\n\nTitle: {{title}}\nDescription: {{description}}\nRequested format: {{format}}\n\nReturn ONLY strict JSON with this shape:\n{\n  \"format\": \"{{format}}\",\n  \"commentary\": \"Complete LinkedIn caption under 1,000 characters\",\n  \"imageAltText\": \"Meaningful description when the format is image\",\n  \"hashtags\": [\"RelevantTag\"],\n  \"slides\": [\n    {\n      \"headline\": \"Short slide headline, maximum 8 words\",\n      \"body\": \"One focused idea in 15-40 words\",\n      \"altText\": \"Accessible description of the slide\"\n    }\n  ]\n}\n\nOpen the commentary with a specific hook, explain concrete reader value, end with a natural call to action, and include 2-3 genuinely relevant hashtags. Do not include a link. For document format, create 5-8 slides that form a coherent sequence: strong cover, focused insights, and a closing takeaway. For text or image format, return an empty slides array. Avoid generic motivational language, fabricated claims, and repeated ideas."
+      "template": "Create a professional LinkedIn post plan for a newly published {{type}}.\n\nTitle: {{title}}\nDescription: {{description}}\nRequested format: {{format}}\n\nReturn ONLY strict JSON with this shape:\n{\n  \"format\": \"{{format}}\",\n  \"commentary\": \"Complete LinkedIn caption under 1,000 characters\",\n  \"imageAltText\": \"Meaningful description when the format is image\",\n  \"hashtags\": [\"RelevantTag\"],\n  \"slides\": [\n    {\n      \"headline\": \"Short slide headline, maximum 8 words\",\n      \"body\": \"One focused idea in 15-40 words\",\n      \"altText\": \"Accessible description of the slide\",\n      \"imagePrompt\": \"A concrete visual concept supporting this slide, with no text in the image\"\n    }\n  ]\n}\n\nOpen the commentary with a specific hook, explain concrete reader value, end with a natural call to action, and include 2-3 genuinely relevant hashtags. Do not include a link. For document format, create 5-8 slides that form a coherent sequence: strong cover, focused insights, and a closing takeaway. Give every document slide a distinct imagePrompt that illustrates its specific idea without repeating the headline as typography. For text or image format, return an empty slides array. Avoid generic motivational language, fabricated claims, and repeated ideas."
     },
     "social.linkedin.image": {
       "name": "LinkedIn post image",
@@ -152,6 +152,14 @@
       "variables": ["type", "title", "description"],
       "requiredVariables": ["type", "title"],
       "template": "Create a premium editorial portrait image for a LinkedIn post about this newly published {{type}}.\n\nTitle: {{title}}\nDescription: {{description}}\n\nTranslate the central idea into one memorable visual metaphor with a clear focal subject, sophisticated composition, strong depth, restrained color, and polished studio or cinematic lighting. It should feel credible in a professional feed, not like generic corporate stock art. Use the full 4:5 canvas and leave comfortable visual breathing room. Do not include text, typography, letters, numbers, logos, watermarks, screenshots, interface elements, or LinkedIn branding."
+    },
+    "social.linkedin.slide-image": {
+      "name": "LinkedIn slide image",
+      "category": "Social",
+      "description": "Creates an optional landscape illustration for one LinkedIn carousel slide.",
+      "variables": ["type", "title", "description", "slideHeadline", "slideBody", "imagePrompt"],
+      "requiredVariables": ["type", "title", "slideHeadline"],
+      "template": "Create a premium editorial landscape illustration for one slide in a LinkedIn carousel about a {{type}}.\n\nOverall title: {{title}}\nOverall description: {{description}}\nSlide headline: {{slideHeadline}}\nSlide idea: {{slideBody}}\nVisual direction: {{imagePrompt}}\n\nIllustrate this slide's specific idea with a single clear focal concept, sophisticated composition, restrained color, depth, and polished cinematic or studio lighting. Compose for a wide 16:9 crop. Do not include text, typography, letters, numbers, charts with labels, logos, watermarks, screenshots, interface elements, or LinkedIn branding."
     },
     "conversation.system": {
       "name": "Conversation system instruction",

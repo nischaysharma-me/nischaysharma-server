@@ -19,7 +19,11 @@ const LINKEDIN_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif']);
 const socialImageSchema = Joi.object({
     title: Joi.string().trim().min(1).max(200).required(),
     description: Joi.string().trim().max(5000).allow('').optional(),
-    type: Joi.string().valid('article', 'book').default('article')
+    type: Joi.string().valid('article', 'book').default('article'),
+    purpose: Joi.string().valid('post', 'slide').default('post'),
+    slideHeadline: Joi.string().trim().max(90).allow('').optional(),
+    slideBody: Joi.string().trim().max(420).allow('').optional(),
+    imagePrompt: Joi.string().trim().max(1000).allow('').optional()
 });
 
 /**
@@ -232,17 +236,29 @@ export async function publishLinkedInPost(req, res) {
         let mediaBuffer = null;
         let mediaType = null;
         if (value.format === 'image') {
-            if (!req.file) {
+            const imageFile = req.files?.media?.[0];
+            if (!imageFile) {
                 return res.status(400).json({ success: false, error: 'Choose an image before publishing' });
             }
-            if (!LINKEDIN_IMAGE_TYPES.has(req.file.mimetype)) {
+            if (!LINKEDIN_IMAGE_TYPES.has(imageFile.mimetype)) {
                 return res.status(400).json({ success: false, error: 'LinkedIn image posts support JPG, PNG, and GIF files' });
             }
-            mediaBuffer = req.file.buffer;
-            mediaType = req.file.mimetype;
+            mediaBuffer = imageFile.buffer;
+            mediaType = imageFile.mimetype;
         } else if (value.format === 'document') {
             const slides = parseSlides(value.slides);
-            mediaBuffer = renderSlidesPdf(slides);
+            const imageIndexes = parseSlides(req.body.slideImageIndexes || '[]');
+            const slideImages = [];
+            (req.files?.slideImages || []).forEach((file, fileIndex) => {
+                if (file.mimetype !== 'image/jpeg') {
+                    throw new Error('Slide images must be JPEG files');
+                }
+                const slideIndex = Number(imageIndexes[fileIndex]);
+                if (Number.isInteger(slideIndex) && slideIndex >= 0 && slideIndex < slides.length) {
+                    slideImages[slideIndex] = file.buffer;
+                }
+            });
+            mediaBuffer = renderSlidesPdf(slides, slideImages);
             mediaType = 'application/pdf';
         }
 

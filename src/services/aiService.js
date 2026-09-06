@@ -67,15 +67,27 @@ async function generateSocialPost(content) {
  * be tuned from the admin prompt library without changing application code.
  */
 async function generateSocialPostImage(content) {
-    const { title, description, type = 'article' } = content;
-    const prompt = await renderPrompt('social.linkedin.image', {
+    const {
+        title,
+        description,
+        type = 'article',
+        purpose = 'post',
+        slideHeadline = '',
+        slideBody = '',
+        imagePrompt = ''
+    } = content;
+    const promptKey = purpose === 'slide' ? 'social.linkedin.slide-image' : 'social.linkedin.image';
+    const prompt = await renderPrompt(promptKey, {
         title,
         description: description || '',
-        type
+        type,
+        slideHeadline,
+        slideBody,
+        imagePrompt
     });
 
     return generateImage(prompt, {
-        aspectRatio: '4:5',
+        aspectRatio: purpose === 'slide' ? '16:9' : '4:5',
         imageSize: '2K'
     });
 }

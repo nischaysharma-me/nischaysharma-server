@@ -34,6 +34,23 @@ test('renders a valid multi-page PDF document', () => {
     assert.match(pdf.subarray(-12).toString('ascii'), /%%EOF/);
 });
 
+test('embeds an optional JPEG image in a slide', () => {
+    const minimalRgbJpeg = Buffer.from([
+        0xff, 0xd8,
+        0xff, 0xc0, 0x00, 0x11, 0x08, 0x00, 0x01, 0x00, 0x01, 0x03,
+        0x01, 0x11, 0x00, 0x02, 0x11, 0x00, 0x03, 0x11, 0x00,
+        0xff, 0xd9
+    ]);
+    const pdf = renderSlidesPdf([
+        { headline: 'Visual slide', body: 'A clear illustrated idea.' },
+        { headline: 'Text slide', body: 'A useful conclusion.' }
+    ], [minimalRgbJpeg]);
+
+    assert.match(pdf.toString('ascii'), /\/Subtype \/Image/);
+    assert.match(pdf.toString('ascii'), /\/DCTDecode/);
+    assert.match(pdf.toString('ascii'), /\/SlideImage Do/);
+});
+
 test('rejects malformed and incomplete slide input', () => {
     assert.throws(() => parseSlides('{bad json'), /valid JSON/);
     assert.throws(() => renderSlidesPdf([{ headline: 'Only one', body: 'Not enough' }]), /between 2 and 10/);

@@ -6,7 +6,7 @@ import multer from 'multer';
 const router = express.Router();
 const socialMediaUpload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 20 * 1024 * 1024, files: 1 }
+    limits: { fileSize: 20 * 1024 * 1024, files: 11 }
 });
 
 /**
@@ -65,7 +65,10 @@ router.post('/ai-post/image', integrationController.generateSocialPostImage);
  *     summary: Publish a text, image, or generated document post to LinkedIn
  *     tags: [Integrations]
  */
-router.post('/linkedin/post', socialMediaUpload.single('media'), integrationController.publishLinkedInPost);
+router.post('/linkedin/post', socialMediaUpload.fields([
+    { name: 'media', maxCount: 1 },
+    { name: 'slideImages', maxCount: 10 }
+]), integrationController.publishLinkedInPost);
 
 /**
  * @swagger
