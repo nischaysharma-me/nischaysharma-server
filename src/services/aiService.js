@@ -1,6 +1,7 @@
 import { AIProvider } from "../providers/ai/registry.js";
 import logger from "../utils/logger.js";
 import { renderPrompt } from './promptLibraryService.js';
+import { normalizeSocialPostPlan } from './socialPostService.js';
 
 const ai = AIProvider(process.env.AI_PROVIDER || "gemini");
 
@@ -47,15 +48,56 @@ async function generateImage(prompt, options = {}) {
  * @param {Object} content - { title, description, type }
  */
 async function generateSocialPost(content) {
-    const { title, description, type = 'article' } = content;
+    const { title, description, type = 'article', format = 'text', sourceContent = '' } = content;
     
-    const prompt = await renderPrompt('social.linkedin', {
+    const prompt = await renderPrompt('social.linkedin.rich', {
         title,
         description: description || '',
-        type
+        type,
+        format
     });
 
-    return await generateText(prompt, { temperature: 0.7 });
+    const sourceContext = sourceContent
+        ? await renderPrompt('social.linkedin.source-context', { sourceContent })
+        : '';
+    const result = await generateText([prompt, sourceContext].filter(Boolean).join('\n\n'), { temperature: 0.7 });
+    return normalizeSocialPostPlan(result, { title, description, type, format });
 }
 
-export { generateText, chat, chatStream, generateImage, generateSocialPost };
+/**
+ * Generate a portrait visual for a LinkedIn image post.
+ * The prompt is deliberately separate from the caption/deck prompt so it can
+ * be tuned from the admin prompt library without changing application code.
+ */
+async function generateSocialPostImage(content) {
+    const {
+        title,
+        description,
+        type = 'article',
+        purpose = 'post',
+        slideHeadline = '',
+        slideBody = '',
+        imagePrompt = '',
+        sourceContent = ''
+    } = content;
+    const promptKey = purpose === 'slide' ? 'social.linkedin.slide-image' : 'social.linkedin.image';
+    const prompt = await renderPrompt(promptKey, {
+        title,
+        description: description || '',
+        type,
+        slideHeadline,
+        slideBody,
+        imagePrompt
+    });
+
+    const sourceContext = sourceContent
+        ? await renderPrompt('social.linkedin.source-context', { sourceContent })
+        : '';
+
+    return generateImage([prompt, sourceContext].filter(Boolean).join('\n\n'), {
+        aspectRatio: purpose === 'slide' ? '16:9' : '4:5',
+        imageSize: '2K'
+    });
+}
+
+export { generateText, chat, chatStream, generateImage, generateSocialPost, generateSocialPostImage };

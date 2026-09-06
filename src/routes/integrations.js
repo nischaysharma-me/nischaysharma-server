@@ -1,8 +1,13 @@
 import express from 'express';
 import * as integrationController from '../controllers/integrationController.js';
 import { isAuthenticated } from '../middleware/auth.js';
+import multer from 'multer';
 
 const router = express.Router();
+const socialMediaUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 20 * 1024 * 1024, files: 11 }
+});
 
 /**
  * @swagger
@@ -43,6 +48,27 @@ router.get('/:provider/auth', integrationController.initiateAuth);
  *     tags: [Integrations]
  */
 router.post('/ai-post', integrationController.generateSocialPost);
+
+/**
+ * @swagger
+ * /integrations/ai-post/image:
+ *   post:
+ *     summary: Generate a LinkedIn-ready image using AI
+ *     tags: [Integrations]
+ */
+router.post('/ai-post/image', integrationController.generateSocialPostImage);
+
+/**
+ * @swagger
+ * /integrations/linkedin/post:
+ *   post:
+ *     summary: Publish a text, image, or generated document post to LinkedIn
+ *     tags: [Integrations]
+ */
+router.post('/linkedin/post', socialMediaUpload.fields([
+    { name: 'media', maxCount: 1 },
+    { name: 'slideImages', maxCount: 10 }
+]), integrationController.publishLinkedInPost);
 
 /**
  * @swagger
