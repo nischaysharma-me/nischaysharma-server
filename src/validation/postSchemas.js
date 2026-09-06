@@ -17,3 +17,9 @@ export const createPostSchema = Joi.object({
 });
 
 export const updatePostSchema = Joi.object(postFields).min(1);
+
+export const generatePostSchema = Joi.object({
+    topic: Joi.string().trim().min(3).max(500).required(),
+    tone: Joi.string().valid('professional', 'conversational', 'bold', 'reflective', 'educational').default('conversational'),
+    instructions: Joi.string().trim().max(1000).allow('').default('')
+});

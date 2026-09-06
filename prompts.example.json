@@ -129,6 +129,14 @@
       "requiredVariables": ["title"],
       "template": "A premium three-dimensional editorial graphic representing {{title}}, with tactile materials, refined lighting, depth, and a clean focal composition. Do not include text, typography, letters, numbers, logos, watermarks, or interface elements."
     },
+    "post.generate": {
+      "name": "Short-form post generator",
+      "category": "Posts",
+      "description": "Creates an editable short-form post draft for the public feed.",
+      "variables": ["topic", "tone", "instructions"],
+      "requiredVariables": ["topic", "tone", "instructions"],
+      "template": "Create one original short-form post about the topic below. It should feel substantial enough to be useful but concise enough for a social feed. Use the requested tone, lead with a specific observation or hook, develop one clear idea, and end naturally without generic engagement bait. Do not invent facts, statistics, quotations, or personal experiences. Return strict JSON only with this shape: {\"title\":\"A concise editorial headline\",\"content\":\"The complete post in plain text with natural paragraph breaks\",\"tags\":[\"tag-one\",\"tag-two\"]}. Use 2-5 lowercase tags without hash symbols. Keep the content below 1,800 characters.\n\nTopic: {{topic}}\nTone: {{tone}}\nAdditional instructions: {{instructions}}"
+    },
     "social.linkedin": {
       "name": "LinkedIn post",
       "category": "Social",

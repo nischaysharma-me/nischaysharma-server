@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPostSchema, updatePostSchema } from '../src/validation/postSchemas.js';
+import { createPostSchema, updatePostSchema, generatePostSchema } from '../src/validation/postSchemas.js';
+import { normalizeGeneratedPost } from '../src/utils/postGeneration.js';
 
 test('accepts a valid short-form post', () => {
     const { error, value } = createPostSchema.validate({
@@ -22,4 +23,19 @@ test('requires post title and content', () => {
 test('rejects an empty post update', () => {
     const { error } = updatePostSchema.validate({});
     assert.ok(error);
+});
+
+test('validates AI post generation input', () => {
+    const { error, value } = generatePostSchema.validate({ topic: 'Lessons from shipping small features' });
+    assert.equal(error, undefined);
+    assert.equal(value.tone, 'conversational');
+});
+
+test('normalizes a structured AI post response', () => {
+    const draft = normalizeGeneratedPost({
+        text: '```json\n{"title":"Ship the smaller version","content":"Small releases make feedback concrete.","tags":["Building","#Building","shipping"]}\n```'
+    }, 'Shipping');
+
+    assert.equal(draft.title, 'Ship the smaller version');
+    assert.deepEqual(draft.tags, ['building', 'shipping']);
 });

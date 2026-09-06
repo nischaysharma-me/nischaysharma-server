@@ -1,4 +1,7 @@
 import { Post } from '../models/index.js';
+import * as aiService from './aiService.js';
+import { renderPrompt } from './promptLibraryService.js';
+import { normalizeGeneratedPost } from '../utils/postGeneration.js';
 
 async function createPost(authorId, data) {
     const now = new Date();
@@ -7,6 +10,20 @@ async function createPost(authorId, data) {
         authorId,
         publishedAt: data.status === 'published' ? now : null
     });
+}
+
+async function generatePost(authorId, { topic, tone, instructions }) {
+    const prompt = await renderPrompt('post.generate', {
+        topic,
+        tone,
+        instructions: instructions || 'No additional instructions.'
+    });
+    const result = await aiService.generateText(prompt, {
+        responseMimeType: 'application/json',
+        temperature: 0.75
+    });
+    const draft = normalizeGeneratedPost(result, topic);
+    return createPost(authorId, { ...draft, status: 'draft' });
 }
 
 async function getPostById(id) {
@@ -54,6 +71,7 @@ async function deletePost(id, authorId) {
 
 export {
     createPost,
+    generatePost,
     getPostById,
     listPosts,
     updatePost,
