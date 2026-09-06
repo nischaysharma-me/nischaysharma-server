@@ -137,6 +137,14 @@
       "requiredVariables": ["type", "title"],
       "template": "Write a professional, engaging LinkedIn post announcing a new {{type}}.\n\nTitle: {{title}}\nDescription: {{description}}\n\nOpen with a specific hook, explain the reader value, use a professional conversational voice, and include 2-3 genuinely relevant hashtags. Keep the complete post under 1,000 characters. Do not include a link. Return only the post text."
     },
+    "social.linkedin.source-context": {
+      "name": "LinkedIn article source context",
+      "category": "Social",
+      "description": "Grounds LinkedIn copy, slides, and visuals in the source article instead of relying only on metadata.",
+      "variables": ["sourceContent"],
+      "requiredVariables": ["sourceContent"],
+      "template": "Use the following source material as the factual and thematic ground truth. Keep the post, slide sequence, and visual concepts aligned with its actual ideas. Do not introduce claims or imagery that conflict with it.\n\nSOURCE MATERIAL:\n{{sourceContent}}"
+    },
     "social.linkedin.rich": {
       "name": "LinkedIn rich-media post plan",
       "category": "Social",

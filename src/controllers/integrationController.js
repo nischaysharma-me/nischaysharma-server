@@ -24,7 +24,8 @@ const socialImageSchema = Joi.object({
     purpose: Joi.string().valid('post', 'slide').default('post'),
     slideHeadline: Joi.string().trim().max(90).allow('').optional(),
     slideBody: Joi.string().trim().max(420).allow('').optional(),
-    imagePrompt: Joi.string().trim().max(1000).allow('').optional()
+    imagePrompt: Joi.string().trim().max(1000).allow('').optional(),
+    sourceContent: Joi.string().trim().max(30000).allow('').optional()
 });
 
 async function downloadGeneratedLinkedInImage(url) {
@@ -160,13 +161,13 @@ export async function initiateAuth(req, res) {
  */
 export async function generateSocialPost(req, res) {
     try {
-        const { title, description, type, format } = req.body;
+        const { title, description, type, format, sourceContent } = req.body;
         
         if (!title) {
             return res.status(400).json({ success: false, error: 'Title is required' });
         }
 
-        const post = await aiService.generateSocialPost({ title, description, type, format });
+        const post = await aiService.generateSocialPost({ title, description, type, format, sourceContent });
         
         res.json({ success: true, data: post });
     } catch (error) {

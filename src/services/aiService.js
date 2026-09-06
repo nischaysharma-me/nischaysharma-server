@@ -48,7 +48,7 @@ async function generateImage(prompt, options = {}) {
  * @param {Object} content - { title, description, type }
  */
 async function generateSocialPost(content) {
-    const { title, description, type = 'article', format = 'text' } = content;
+    const { title, description, type = 'article', format = 'text', sourceContent = '' } = content;
     
     const prompt = await renderPrompt('social.linkedin.rich', {
         title,
@@ -57,7 +57,10 @@ async function generateSocialPost(content) {
         format
     });
 
-    const result = await generateText(prompt, { temperature: 0.7 });
+    const sourceContext = sourceContent
+        ? await renderPrompt('social.linkedin.source-context', { sourceContent })
+        : '';
+    const result = await generateText([prompt, sourceContext].filter(Boolean).join('\n\n'), { temperature: 0.7 });
     return normalizeSocialPostPlan(result, { title, description, type, format });
 }
 
@@ -74,7 +77,8 @@ async function generateSocialPostImage(content) {
         purpose = 'post',
         slideHeadline = '',
         slideBody = '',
-        imagePrompt = ''
+        imagePrompt = '',
+        sourceContent = ''
     } = content;
     const promptKey = purpose === 'slide' ? 'social.linkedin.slide-image' : 'social.linkedin.image';
     const prompt = await renderPrompt(promptKey, {
@@ -86,7 +90,11 @@ async function generateSocialPostImage(content) {
         imagePrompt
     });
 
-    return generateImage(prompt, {
+    const sourceContext = sourceContent
+        ? await renderPrompt('social.linkedin.source-context', { sourceContent })
+        : '';
+
+    return generateImage([prompt, sourceContext].filter(Boolean).join('\n\n'), {
         aspectRatio: purpose === 'slide' ? '16:9' : '4:5',
         imageSize: '2K'
     });
