@@ -7,6 +7,65 @@ import * as linkedinUtils from '../utils/linkedinAnalytics.js';
 import axios from 'axios';
 import { raw } from 'express';
 
+const LINKEDIN_RECONNECT_MESSAGE = 'LinkedIn authorization expired. Reconnect LinkedIn and try publishing again.';
+
+function toMilliseconds(value) {
+    if (!value) return null;
+    if (typeof value.toMillis === 'function') return value.toMillis();
+    if (value instanceof Date) return value.getTime();
+    const parsed = new Date(value).getTime();
+    return Number.isNaN(parsed) ? null : parsed;
+}
+
+function isLinkedInAuthError(error) {
+    const status = error.response?.status;
+    const message = `${error.response?.data?.message || ''} ${error.message || ''}`.toLowerCase();
+    return status === 401 || message.includes('token used in the request has expired') || message.includes('invalid access token');
+}
+
+function linkedinTokenNeedsRefresh(config) {
+    const expiresAt = toMilliseconds(config?.accessTokenExpiresAt);
+    return Boolean(expiresAt && expiresAt <= Date.now() + 60_000);
+}
+
+async function flagLinkedInReconnect(userId) {
+    await updateIntegration(userId, 'linkedin', {
+        connected: false,
+        requiresReconnect: true
+    }, { skipValidation: true });
+}
+
+async function refreshLinkedInToken(userId, currentConfig) {
+    if (!currentConfig.refreshToken) throw new Error(LINKEDIN_RECONNECT_MESSAGE);
+
+    const appConfig = await getConfigForUser(userId, 'linkedin');
+    const response = await axios.post('https://www.linkedin.com/oauth/v2/accessToken', new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: currentConfig.refreshToken,
+        client_id: appConfig.clientId,
+        client_secret: appConfig.clientSecret
+    }).toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+
+    const now = Date.now();
+    const refreshed = {
+        accessToken: response.data.access_token,
+        expiresIn: response.data.expires_in,
+        accessTokenExpiresAt: new Date(now + response.data.expires_in * 1000),
+        refreshToken: response.data.refresh_token || currentConfig.refreshToken,
+        refreshTokenExpiresIn: response.data.refresh_token_expires_in || currentConfig.refreshTokenExpiresIn,
+        connected: true,
+        requiresReconnect: false
+    };
+    if (response.data.refresh_token_expires_in) {
+        refreshed.refreshTokenExpiresAt = new Date(now + response.data.refresh_token_expires_in * 1000);
+    }
+
+    await updateIntegration(userId, 'linkedin', refreshed, { skipValidation: true });
+    return { ...currentConfig, ...refreshed };
+}
+
 /**
  * Get the integration config for a user, combining defaults with user overrides
  */
@@ -84,7 +143,18 @@ export async function handleCallback(providerName, code, userId) {
         }).toString(), {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
-        tokenData = { accessToken: response.data.access_token, expiresIn: response.data.expires_in };
+        const now = Date.now();
+        tokenData = {
+            accessToken: response.data.access_token,
+            expiresIn: response.data.expires_in,
+            accessTokenExpiresAt: new Date(now + response.data.expires_in * 1000),
+            refreshToken: response.data.refresh_token || null,
+            refreshTokenExpiresIn: response.data.refresh_token_expires_in || null,
+            refreshTokenExpiresAt: response.data.refresh_token_expires_in
+                ? new Date(now + response.data.refresh_token_expires_in * 1000)
+                : null,
+            requiresReconnect: false
+        };
     }
 
     if (!tokenData?.accessToken) {
@@ -145,7 +215,9 @@ export async function updateIntegration(userId, providerName, config, options = 
         integrationDoc[providerName] = {
             ...mergedConfig,
             // If accessToken was provided but validation was skipped, assume connected
-            connected: mergedConfig.accessToken ? true : !!mergedConfig.connected,
+            connected: Object.prototype.hasOwnProperty.call(config, 'connected')
+                ? Boolean(config.connected)
+                : mergedConfig.accessToken ? true : !!mergedConfig.connected,
             updatedAt: new Date()
         };
         
@@ -201,10 +273,24 @@ export async function getIntegration(userId, providerName) {
  * @param {Object} syncOptions 
  */
 export async function syncIntegration(userId, providerName, syncOptions = {}) {
-    const config = await getIntegration(userId, providerName);
+    let config = await getIntegration(userId, providerName);
     if (!config) throw new Error(`Integration ${providerName} not configured for this user`);
 
-    const provider = IntegrationProvider(providerName, config);
+    let refreshed = false;
+    if (providerName === 'linkedin' && linkedinTokenNeedsRefresh(config)) {
+        try {
+            config = await refreshLinkedInToken(userId, config);
+            refreshed = true;
+        } catch (error) {
+            await flagLinkedInReconnect(userId);
+            if (isLinkedInAuthError(error) || error.message === LINKEDIN_RECONNECT_MESSAGE) {
+                throw new Error(LINKEDIN_RECONNECT_MESSAGE);
+            }
+            throw error;
+        }
+    }
+
+    let provider = IntegrationProvider(providerName, config);
     
     // Ensure we have a client initialized if possible
     if (!provider.client && config.accessToken) {
@@ -212,7 +298,25 @@ export async function syncIntegration(userId, providerName, syncOptions = {}) {
     }
 
     // Connect first
-    await provider.connect();
+    try {
+        await provider.connect();
+    } catch (error) {
+        if (providerName !== 'linkedin' || !isLinkedInAuthError(error)) throw error;
+
+        if (config.refreshToken && !refreshed) {
+            try {
+                config = await refreshLinkedInToken(userId, config);
+                provider = IntegrationProvider(providerName, config);
+                await provider.connect();
+            } catch (refreshError) {
+                await flagLinkedInReconnect(userId);
+                throw new Error(LINKEDIN_RECONNECT_MESSAGE);
+            }
+        } else {
+            await flagLinkedInReconnect(userId);
+            throw new Error(LINKEDIN_RECONNECT_MESSAGE);
+        }
+    }
     
     // Check for special analytics sync actions
     if (syncOptions.action === 'get_stats' || syncOptions.action === 'sync_profile') {

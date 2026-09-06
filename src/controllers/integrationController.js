@@ -260,7 +260,12 @@ export async function publishLinkedInPost(req, res) {
         res.json({ success: true, data });
     } catch (error) {
         logger.error('IntegrationController: LinkedIn publish error:', error);
-        res.status(400).json({ success: false, error: error.message });
+        const requiresReconnect = error.message.includes('Reconnect LinkedIn');
+        res.status(requiresReconnect ? 401 : 400).json({
+            success: false,
+            error: error.message,
+            code: requiresReconnect ? 'LINKEDIN_REAUTH_REQUIRED' : undefined
+        });
     }
 }
 

@@ -51,6 +51,9 @@ class LinkedInIntegrationProvider extends BaseIntegrationProvider {
                 accountName = `${firstName} ${lastName}`;
                 picture = data.picture;
             } catch (oidcError) {
+                if (oidcError.response?.status === 401) {
+                    throw oidcError;
+                }
                 // Fallback to legacy /v2/me endpoint
                 console.warn("LinkedIn: OIDC /v2/userinfo failed, trying legacy /v2/me", oidcError.message);
                 const response = await axios.get("https://api.linkedin.com/v2/me", {
