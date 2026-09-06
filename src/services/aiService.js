@@ -61,4 +61,23 @@ async function generateSocialPost(content) {
     return normalizeSocialPostPlan(result, { title, description, type, format });
 }
 
-export { generateText, chat, chatStream, generateImage, generateSocialPost };
+/**
+ * Generate a portrait visual for a LinkedIn image post.
+ * The prompt is deliberately separate from the caption/deck prompt so it can
+ * be tuned from the admin prompt library without changing application code.
+ */
+async function generateSocialPostImage(content) {
+    const { title, description, type = 'article' } = content;
+    const prompt = await renderPrompt('social.linkedin.image', {
+        title,
+        description: description || '',
+        type
+    });
+
+    return generateImage(prompt, {
+        aspectRatio: '4:5',
+        imageSize: '2K'
+    });
+}
+
+export { generateText, chat, chatStream, generateImage, generateSocialPost, generateSocialPostImage };

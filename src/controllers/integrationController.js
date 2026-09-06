@@ -4,6 +4,8 @@ import * as aiService from '../services/aiService.js';
 import logger from '../utils/logger.js';
 import Joi from 'joi';
 import { parseSlides, renderSlidesPdf } from '../services/socialPostService.js';
+import * as storageService from '../services/storageService.js';
+import fetch from 'node-fetch';
 
 const socialPostSchema = Joi.object({
     commentary: Joi.string().trim().min(1).max(3000).required(),
@@ -14,6 +16,11 @@ const socialPostSchema = Joi.object({
     slides: Joi.string().allow('').optional()
 });
 const LINKEDIN_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif']);
+const socialImageSchema = Joi.object({
+    title: Joi.string().trim().min(1).max(200).required(),
+    description: Joi.string().trim().max(5000).allow('').optional(),
+    type: Joi.string().valid('article', 'book').default('article')
+});
 
 /**
  * Get user Doc ID from request context
@@ -145,6 +152,60 @@ export async function generateSocialPost(req, res) {
         res.json({ success: true, data: post });
     } catch (error) {
         logger.error('IntegrationController: AI Post Generation Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Generate and persist a LinkedIn-ready image so the browser receives a small,
+ * publishable URL instead of a large base64 response.
+ */
+export async function generateSocialPostImage(req, res) {
+    try {
+        const { error, value } = socialImageSchema.validate(req.body, {
+            abortEarly: false,
+            stripUnknown: true
+        });
+        if (error) {
+            return res.status(400).json({
+                success: false,
+                error: error.details.map((detail) => detail.message).join(', ')
+            });
+        }
+
+        const userId = await getUserId(req);
+        if (!userId) throw new Error('User profile not found');
+
+        const result = await aiService.generateSocialPostImage(value);
+        if (!result.success || !result.images?.length) {
+            throw new Error(result.error || 'The image model did not return an image');
+        }
+
+        const image = result.images[0];
+        let buffer;
+        let mimeType;
+        if (typeof image === 'string') {
+            const response = await fetch(image);
+            if (!response.ok) throw new Error('Could not download the generated image');
+            buffer = Buffer.from(await response.arrayBuffer());
+            mimeType = response.headers.get('content-type') || 'image/png';
+        } else if (image.inlineData?.data) {
+            buffer = Buffer.from(image.inlineData.data, 'base64');
+            mimeType = image.inlineData.mimeType || 'image/png';
+        } else {
+            throw new Error('The image model returned an unsupported image format');
+        }
+
+        const upload = await storageService.uploadUserAsset(
+            userId,
+            buffer,
+            mimeType,
+            'linkedin_images'
+        );
+
+        res.json({ success: true, data: { url: upload.url, mimeType } });
+    } catch (error) {
+        logger.error('IntegrationController: LinkedIn Image Generation Error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 }

@@ -51,6 +51,15 @@ router.post('/ai-post', integrationController.generateSocialPost);
 
 /**
  * @swagger
+ * /integrations/ai-post/image:
+ *   post:
+ *     summary: Generate a LinkedIn-ready image using AI
+ *     tags: [Integrations]
+ */
+router.post('/ai-post/image', integrationController.generateSocialPostImage);
+
+/**
+ * @swagger
  * /integrations/linkedin/post:
  *   post:
  *     summary: Publish a text, image, or generated document post to LinkedIn
