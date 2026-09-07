@@ -97,4 +97,3 @@ Marks the post as published and records its publication time.
 - **Auth**: Required; owner only
 
 Deletes the post and any owned generated image associated with it.
-

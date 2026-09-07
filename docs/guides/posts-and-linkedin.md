@@ -55,4 +55,3 @@ Defaults live in `prompts.example.json`. Runtime overrides live in the ignored `
 - Keep image alt text meaningful for accessibility.
 - LinkedIn OAuth requires `openid`, `profile`, `email`, and `w_member_social`.
 - LinkedIn access tokens expire; reconnection is the recovery path when refresh is unavailable.
-
