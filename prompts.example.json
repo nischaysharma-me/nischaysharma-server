@@ -137,6 +137,14 @@
       "requiredVariables": ["topic", "tone", "instructions"],
       "template": "Create one original short-form post about the topic below. It should feel substantial enough to be useful but concise enough for a social feed. Use the requested tone, lead with a specific observation or hook, develop one clear idea, and end naturally without generic engagement bait. Do not invent facts, statistics, quotations, or personal experiences. Return strict JSON only with this shape: {\"title\":\"A concise editorial headline\",\"content\":\"The complete post in plain text with natural paragraph breaks\",\"tags\":[\"tag-one\",\"tag-two\"]}. Use 2-5 lowercase tags without hash symbols. Keep the content below 1,800 characters.\n\nTopic: {{topic}}\nTone: {{tone}}\nAdditional instructions: {{instructions}}"
     },
+    "post.image": {
+      "name": "Post image generator",
+      "category": "Posts",
+      "description": "Creates a portrait editorial image grounded in an individual post.",
+      "variables": ["title", "content", "tags", "visualDirection"],
+      "requiredVariables": ["title", "content", "tags", "visualDirection"],
+      "template": "Create a premium editorial portrait image for the short-form post below. Translate its central idea into one specific, memorable visual metaphor. Use a clear focal subject, sophisticated depth, restrained color, and polished cinematic or studio lighting. Compose for a 4:5 social-feed crop. The visual must align with the actual post rather than merely illustrating its tags. Do not include text, typography, letters, numbers, logos, watermarks, screenshots, or interface elements.\n\nPost title: {{title}}\nPost content: {{content}}\nTags: {{tags}}\nAdditional visual direction: {{visualDirection}}"
+    },
     "social.linkedin": {
       "name": "LinkedIn post",
       "category": "LinkedIn",

@@ -28,6 +28,19 @@ export async function generatePost(req, res) {
     }
 }
 
+export async function generatePostImage(req, res) {
+    try {
+        const post = await postService.generatePostImage(
+            req.params.id,
+            req.user.uid,
+            req.body.visualDirection
+        );
+        res.json({ success: true, data: post });
+    } catch (error) {
+        sendError(res, error, 500);
+    }
+}
+
 export async function listPosts(req, res) {
     try {
         const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);

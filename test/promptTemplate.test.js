@@ -49,6 +49,7 @@ test('post and LinkedIn generation prompts remain admin-managed', () => {
     const catalog = JSON.parse(fs.readFileSync(new URL('../prompts.example.json', import.meta.url), 'utf8'));
     const requiredKeys = [
         'post.generate',
+        'post.image',
         'social.linkedin.rich',
         'social.linkedin.source-context',
         'social.linkedin.image',

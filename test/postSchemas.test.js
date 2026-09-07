@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPostSchema, updatePostSchema, generatePostSchema } from '../src/validation/postSchemas.js';
+import { createPostSchema, updatePostSchema, generatePostSchema, generatePostImageSchema } from '../src/validation/postSchemas.js';
 import { normalizeGeneratedPost } from '../src/utils/postGeneration.js';
 
 test('accepts a valid short-form post', () => {
@@ -29,6 +29,11 @@ test('validates AI post generation input', () => {
     const { error, value } = generatePostSchema.validate({ topic: 'Lessons from shipping small features' });
     assert.equal(error, undefined);
     assert.equal(value.tone, 'conversational');
+});
+
+test('validates optional post image direction', () => {
+    assert.equal(generatePostImageSchema.validate({ visualDirection: 'Warm editorial photography' }).error, undefined);
+    assert.equal(generatePostImageSchema.validate({}).value.visualDirection, '');
 });
 
 test('normalizes a structured AI post response', () => {

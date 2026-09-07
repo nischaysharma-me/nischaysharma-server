@@ -23,3 +23,7 @@ export const generatePostSchema = Joi.object({
     tone: Joi.string().valid('professional', 'conversational', 'bold', 'reflective', 'educational').default('conversational'),
     instructions: Joi.string().trim().max(1000).allow('').default('')
 });
+
+export const generatePostImageSchema = Joi.object({
+    visualDirection: Joi.string().trim().max(1000).allow('').default('')
+});
