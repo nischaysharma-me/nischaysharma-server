@@ -44,3 +44,21 @@ test('all example catalog prompts are valid', () => {
         assert.deepEqual(validatePromptTemplate(definitionEntry, definitionEntry.template), []);
     }
 });
+
+test('post and LinkedIn generation prompts remain admin-managed', () => {
+    const catalog = JSON.parse(fs.readFileSync(new URL('../prompts.example.json', import.meta.url), 'utf8'));
+    const requiredKeys = [
+        'post.generate',
+        'post.image',
+        'social.linkedin.rich',
+        'social.linkedin.source-context',
+        'social.linkedin.image',
+        'social.linkedin.slide-image'
+    ];
+
+    for (const key of requiredKeys) {
+        assert.ok(catalog.prompts[key], `Missing prompt library entry: ${key}`);
+    }
+    assert.equal(catalog.prompts['post.generate'].category, 'Posts');
+    assert.equal(catalog.prompts['social.linkedin.rich'].category, 'LinkedIn');
+});

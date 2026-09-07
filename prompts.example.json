@@ -129,25 +129,41 @@
       "requiredVariables": ["title"],
       "template": "A premium three-dimensional editorial graphic representing {{title}}, with tactile materials, refined lighting, depth, and a clean focal composition. Do not include text, typography, letters, numbers, logos, watermarks, or interface elements."
     },
+    "post.generate": {
+      "name": "Short-form post generator",
+      "category": "Posts",
+      "description": "Creates an editable short-form post draft for the public feed.",
+      "variables": ["topic", "tone", "instructions"],
+      "requiredVariables": ["topic", "tone", "instructions"],
+      "template": "Create one original short-form post about the topic below. It should feel substantial enough to be useful but concise enough for a social feed. Use the requested tone, lead with a specific observation or hook, develop one clear idea, and end naturally without generic engagement bait. Do not invent facts, statistics, quotations, or personal experiences. Return strict JSON only with this shape: {\"title\":\"A concise editorial headline\",\"content\":\"The complete post in plain text with natural paragraph breaks\",\"tags\":[\"tag-one\",\"tag-two\"]}. Use 2-5 lowercase tags without hash symbols. Keep the content below 1,800 characters.\n\nTopic: {{topic}}\nTone: {{tone}}\nAdditional instructions: {{instructions}}"
+    },
+    "post.image": {
+      "name": "Post image generator",
+      "category": "Posts",
+      "description": "Creates a portrait editorial image grounded in an individual post.",
+      "variables": ["title", "content", "tags", "visualDirection"],
+      "requiredVariables": ["title", "content", "tags", "visualDirection"],
+      "template": "Create a premium editorial portrait image for the short-form post below. Translate its central idea into one specific, memorable visual metaphor. Use a clear focal subject, sophisticated depth, restrained color, and polished cinematic or studio lighting. Compose for a 4:5 social-feed crop. The visual must align with the actual post rather than merely illustrating its tags. Do not include text, typography, letters, numbers, logos, watermarks, screenshots, or interface elements.\n\nPost title: {{title}}\nPost content: {{content}}\nTags: {{tags}}\nAdditional visual direction: {{visualDirection}}"
+    },
     "social.linkedin": {
       "name": "LinkedIn post",
-      "category": "Social",
+      "category": "LinkedIn",
       "description": "Writes a LinkedIn post for a newly published item.",
       "variables": ["type", "title", "description"],
       "requiredVariables": ["type", "title"],
       "template": "Write a professional, engaging LinkedIn post announcing a new {{type}}.\n\nTitle: {{title}}\nDescription: {{description}}\n\nOpen with a specific hook, explain the reader value, use a professional conversational voice, and include 2-3 genuinely relevant hashtags. Keep the complete post under 1,000 characters. Do not include a link. Return only the post text."
     },
     "social.linkedin.source-context": {
-      "name": "LinkedIn article source context",
-      "category": "Social",
-      "description": "Grounds LinkedIn copy, slides, and visuals in the source article instead of relying only on metadata.",
+      "name": "LinkedIn source content grounding",
+      "category": "LinkedIn",
+      "description": "Grounds LinkedIn copy, slides, and visuals in the source article, book, or post instead of relying only on metadata.",
       "variables": ["sourceContent"],
       "requiredVariables": ["sourceContent"],
       "template": "Use the following source material as the factual and thematic ground truth. Keep the post, slide sequence, and visual concepts aligned with its actual ideas. Do not introduce claims or imagery that conflict with it.\n\nSOURCE MATERIAL:\n{{sourceContent}}"
     },
     "social.linkedin.rich": {
       "name": "LinkedIn rich-media post plan",
-      "category": "Social",
+      "category": "LinkedIn",
       "description": "Creates structured copy and editable slides for LinkedIn media posts.",
       "variables": ["type", "title", "description", "format"],
       "requiredVariables": ["type", "title", "format"],
@@ -155,7 +171,7 @@
     },
     "social.linkedin.image": {
       "name": "LinkedIn post image",
-      "category": "Social",
+      "category": "LinkedIn",
       "description": "Creates the portrait visual used by an AI-generated LinkedIn image post.",
       "variables": ["type", "title", "description"],
       "requiredVariables": ["type", "title"],
@@ -163,7 +179,7 @@
     },
     "social.linkedin.slide-image": {
       "name": "LinkedIn slide image",
-      "category": "Social",
+      "category": "LinkedIn",
       "description": "Creates an optional landscape illustration for one LinkedIn carousel slide.",
       "variables": ["type", "title", "description", "slideHeadline", "slideBody", "imagePrompt"],
       "requiredVariables": ["type", "title", "slideHeadline"],

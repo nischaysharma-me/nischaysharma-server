@@ -9,6 +9,8 @@ The article generation process is a two-step pipeline designed to ensure structu
 1.  **Structure Generation**: The AI first plans the article skeleton (JSON).
 2.  **Content Generation**: The AI then fills in the content based on the plan (Markdown/HTML).
 
+Prompt text is no longer intended to be maintained inline in service code. Versioned defaults live in `prompts.example.json`, while deploy-specific overrides live in the gitignored `prompts.json`. Administrators can edit, preview, reset, and inspect template history from `/admin/prompt-library`.
+
 ## 1. Structure Generation Prompt
 
 **Goal**: To create a valid JSON object defining the article's metadata and sections.
@@ -70,3 +72,15 @@ Instructions:
     -   Iterate through sections. If `imagePrompt` exists, generate image using the predicted `imageAspectRatio`, upload to Storage, and get URL.
 4.  **Step 2 (AI)**: Generate HTML content using the Structure + Image URLs.
 5.  **Save**: Store the final Article object in the database.
+
+## Short-Form and LinkedIn Templates
+
+The same Prompt Library also owns the downstream social workflows:
+
+- `post.generate` creates an editable short-form post draft.
+- `post.image` creates a 4:5 visual grounded in the saved post.
+- `social.linkedin` and `social.linkedin.rich` create LinkedIn copy and structured rich-media content.
+- `social.linkedin.source-context` prepares source grounding.
+- `social.linkedin.image` and `social.linkedin.slide-image` generate single-post and carousel visuals.
+
+After adding a default template, update `prompts.example.json`. The runtime catalog is served without stale caching so the entry is immediately visible in the Prompt Library.
